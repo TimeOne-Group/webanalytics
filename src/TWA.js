@@ -4,6 +4,24 @@ import StorageJS from '@timeone-group/storage-js';
 import { v4 as uuid } from '@lukeed/uuid';
 import QueryString from 'query-string';
 
+const buildCollectParams = (config, query) => {
+  const parsedQueryString = QueryString.parse(query);
+
+  const collected = config
+    .map((toCollect) => ({
+      name: toCollect.field,
+      value: parsedQueryString[toCollect.param] || null,
+    }))
+    .filter((param) => param.value !== null);
+
+  const addToEvent = {};
+  collected.forEach((toCollect) => {
+    addToEvent[toCollect.name] = toCollect.value;
+  });
+
+  return addToEvent;
+};
+
 class TWA {
   constructor(id, collect) {
     this.id = id;
@@ -17,21 +35,13 @@ class TWA {
   }
 
   pushEvent(event) {
-    const parsedQueryString = QueryString.parse(window.location.search);
-    const collected = this.collect
-      .map((toCollect) => ({
-        name: toCollect.field,
-        value: parsedQueryString[toCollect.param] || null,
-      }))
-      .filter((param) => param.value !== null);
-    const addToEvent = {};
-    collected.forEach((toCollect) => {
-      addToEvent[toCollect.name] = toCollect.value;
-    });
     const id = uuid();
     this.store.save({
       id,
-      event: Object.assign(event, addToEvent),
+      event: Object.assign(
+        event,
+        buildCollectParams(this.collect, window.location.search)
+      ),
     });
   }
 

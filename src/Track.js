@@ -1,5 +1,6 @@
 import { AppError, Severity } from '@timeone-group/error-logger-js';
 import TWA from './TWA';
+import defaultCollect from './defaultCollect';
 
 const cache = {};
 
@@ -8,7 +9,7 @@ const Track = {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
-    cache[twaId] = new TWA(twaId, collect);
+    cache[twaId] = new TWA(twaId, [...defaultCollect, ...collect]);
   },
   show: ({ twaId }) => {
     if (!cache[twaId]) {

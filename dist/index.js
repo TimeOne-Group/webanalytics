@@ -11648,6 +11648,23 @@
     };
   });
 
+  var buildCollectParams = function buildCollectParams(config, query) {
+    var parsedQueryString = queryString.parse(query);
+    var collected = config.map(function (toCollect) {
+      return {
+        name: toCollect.field,
+        value: parsedQueryString[toCollect.param] || null
+      };
+    }).filter(function (param) {
+      return param.value !== null;
+    });
+    var addToEvent = {};
+    collected.forEach(function (toCollect) {
+      addToEvent[toCollect.name] = toCollect.value;
+    });
+    return addToEvent;
+  };
+
   var TWA = /*#__PURE__*/function () {
     function TWA(id, collect) {
       _classCallCheck(this, TWA);
@@ -11669,23 +11686,10 @@
     }, {
       key: "pushEvent",
       value: function pushEvent(event) {
-        var parsedQueryString = queryString.parse(window.location.search);
-        var collected = this.collect.map(function (toCollect) {
-          return {
-            name: toCollect.field,
-            value: parsedQueryString[toCollect.param] || null
-          };
-        }).filter(function (param) {
-          return param.value !== null;
-        });
-        var addToEvent = {};
-        collected.forEach(function (toCollect) {
-          addToEvent[toCollect.name] = toCollect.value;
-        });
         var id = v4();
         this.store.save({
           id: id,
-          event: Object.assign(event, addToEvent)
+          event: Object.assign(event, buildCollectParams(this.collect, window.location.search))
         });
       }
     }, {
@@ -11704,6 +11708,23 @@
     return TWA;
   }();
 
+  var defaultCollect = [{
+    field: 'source',
+    param: 'utm_source'
+  }, {
+    field: 'source_medium',
+    param: 'utm_medium'
+  }, {
+    field: 'source_campaign',
+    param: 'utm_campaign'
+  }, {
+    field: 'source_content',
+    param: 'utm_content'
+  }, {
+    field: 'source_term',
+    param: 'utm_term'
+  }];
+
   var cache = {};
   var Track = {
     init: function init(_ref) {
@@ -11714,7 +11735,7 @@
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
       }
 
-      cache[twaId] = new TWA(twaId, collect);
+      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultCollect), _toConsumableArray(collect)));
     },
     show: function show(_ref2) {
       var twaId = _ref2.twaId;
