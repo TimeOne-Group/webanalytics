@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/TimeOne-Group/webanalytics.git#readme",
   "dependencies": {
-    "@lukeed/uuid": "^2.0.0",
     "@timeone-group/error-logger-js": "^0.2.2",
     "@timeone-group/storage-js": "^0.1.4",
     "core-js": "^3.9.1",

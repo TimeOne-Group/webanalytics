@@ -5,7 +5,8 @@
     <title>Web Analytics By TimeOne - Tracker</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="icon" href="favicon.svg" />
-    <script defer="defer" src="index.js"></script>
+    <script defer="defer" src="../index.js"></script>
+    <script src="debug.js"></script>
   </head>
   <body>
     <script>
@@ -27,23 +28,21 @@
         },
       ]);
       TWA.push([
-        'show',
-        {
-          twaId: 1,
-        },
-      ]);
-      TWA.push([
         'pageview',
         {
           twaId: 1,
         },
       ]);
-      TWA.push([
-        'showAllEvents',
-        {
-          twaId: 1,
-        },
-      ]);
     </script>
+    <h1>Menu</h1>
+    <ul>
+      <li><a href="page.html">Page</a></li>
+    </ul>
+    <h1>Debug</h1>
+    <ul>
+      <li><a href="#" onclick="TWA_showConfig(1)">Config</a></li>
+      <li><a href="#" onclick="TWA_showTrace(1)">Trace</a></li>
+      <li><a href="#" onclick="TWA_clearAll(1)">Clear</a></li>
+    </ul>
   </body>
 </html>

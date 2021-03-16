@@ -41,6 +41,55 @@
     return Constructor;
   }
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function ownKeys$2(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+
+      if (i % 2) {
+        ownKeys$2(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys$2(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  }
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -11058,39 +11107,6 @@
     return StorageJS;
   }();
 
-  var IDX = 256,
-      HEX = [],
-      BUFFER;
-
-  while (IDX--) {
-    HEX[IDX] = (IDX + 256).toString(16).substring(1);
-  }
-
-  function v4() {
-    var i = 0,
-        num,
-        out = '';
-
-    if (!BUFFER || IDX + 16 > 256) {
-      BUFFER = Array(i = 256);
-
-      while (i--) {
-        BUFFER[i] = 256 * Math.random() | 0;
-      }
-
-      i = IDX = 0;
-    }
-
-    for (; i < 16; i++) {
-      num = BUFFER[IDX + i];
-      if (i == 6) out += HEX[num & 15 | 64];else if (i == 8) out += HEX[num & 63 | 128];else out += HEX[num];
-      if (i & 1 && i > 1 && i < 11) out += '-';
-    }
-
-    IDX++;
-    return out;
-  }
-
   var strictUriEncode = function strictUriEncode(str) {
     return encodeURIComponent(str).replace(/[!'()*]/g, function (x) {
       return "%".concat(x.charCodeAt(0).toString(16).toUpperCase());
@@ -11648,9 +11664,11 @@
     };
   });
 
-  var buildCollectParams = function buildCollectParams(config, query) {
+  var TRACE_KEY = 'trace';
+
+  var buildCollectedFromQuery = function buildCollectedFromQuery(query, config) {
     var parsedQueryString = queryString.parse(query);
-    var collected = config.map(function (toCollect) {
+    return config.map(function (toCollect) {
       return {
         name: toCollect.field,
         value: parsedQueryString[toCollect.param] || null
@@ -11658,19 +11676,34 @@
     }).filter(function (param) {
       return param.value !== null;
     });
-    var addToEvent = {};
-    collected.forEach(function (toCollect) {
-      addToEvent[toCollect.name] = toCollect.value;
+  };
+
+  var flattenToObject = function flattenToObject(array) {
+    var flattenObject = {};
+    array.forEach(function (object) {
+      flattenObject[object.name] = object.value;
     });
-    return addToEvent;
+    return flattenObject;
+  };
+
+  var buildAnonymusPageFromLocation = function buildAnonymusPageFromLocation(location) {
+    return "".concat(location.protocol, "//").concat(location.host).concat(location.pathname);
+  };
+
+  var buildAnonymusReferer = function buildAnonymusReferer(referer) {
+    if (referer) {
+      return referer.split('?').shift();
+    }
+
+    return '';
   };
 
   var TWA = /*#__PURE__*/function () {
-    function TWA(id, collect) {
+    function TWA(id, config) {
       _classCallCheck(this, TWA);
 
       this.id = id;
-      this.collect = collect;
+      this.config = config;
       this.store = new StorageJS({
         prefix: 'TWA',
         defaultTTL: 34164000
@@ -11678,37 +11711,64 @@
     }
 
     _createClass(TWA, [{
-      key: "show",
-      value: function show() {
-        // eslint-disable-next-line no-console
-        console.log(this.collect);
+      key: "getConfig",
+      value: function getConfig() {
+        return this.config;
+      }
+    }, {
+      key: "getSavedTrace",
+      value: function getSavedTrace() {
+        var saved = this.store.find(TRACE_KEY);
+        return saved.trace || {};
+      }
+    }, {
+      key: "saveTrace",
+      value: function saveTrace(trace) {
+        this.store.save({
+          id: TRACE_KEY,
+          trace: trace
+        });
       }
     }, {
       key: "pushEvent",
       value: function pushEvent(event) {
-        var id = v4();
-        this.store.save({
-          id: id,
-          event: Object.assign(event, buildCollectParams(this.collect, window.location.search))
-        });
+        var toSaveEvent = Object.assign(event, this.buildTrace(window.location.search), {
+          page: buildAnonymusPageFromLocation(window.location),
+          referer: buildAnonymusReferer(window.document.referrer),
+          time: new Date().getTime()
+        }); // eslint-disable-next-line no-console
+
+        console.log(toSaveEvent);
       }
     }, {
-      key: "getAllEvents",
-      value: function getAllEvents() {
+      key: "getAllDatas",
+      value: function getAllDatas() {
         return this.store.findAll();
       }
     }, {
-      key: "showAllEvents",
-      value: function showAllEvents() {
-        // eslint-disable-next-line no-console
-        console.log(this.getAllEvents());
+      key: "clearAll",
+      value: function clearAll() {
+        var _this = this;
+
+        var events = this.getAllDatas();
+        events.forEach(function (event) {
+          return _this.store.delete(event.id);
+        });
+      }
+    }, {
+      key: "buildTrace",
+      value: function buildTrace(query) {
+        var toSaveTrace = _objectSpread2(_objectSpread2({}, this.getSavedTrace()), flattenToObject(buildCollectedFromQuery(query, this.config)));
+
+        this.saveTrace(toSaveTrace);
+        return toSaveTrace;
       }
     }]);
 
     return TWA;
   }();
 
-  var defaultCollect = [{
+  var defaultConfig = [{
     field: 'source',
     param: 'utm_source'
   }, {
@@ -11729,34 +11789,43 @@
   var Track = {
     init: function init(_ref) {
       var twaId = _ref.twaId,
-          collect = _ref.collect;
+          config = _ref.collect;
 
       if (!twaId) {
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
       }
 
-      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultCollect), _toConsumableArray(collect)));
+      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config)));
     },
-    show: function show(_ref2) {
+    showConfig: function showConfig(_ref2) {
       var twaId = _ref2.twaId;
 
       if (!cache[twaId]) {
         throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
       }
 
-      cache[twaId].show();
+      console.log(cache[twaId].getConfig());
     },
-    showAllEvents: function showAllEvents(_ref3) {
+    showTrace: function showTrace(_ref3) {
       var twaId = _ref3.twaId;
 
       if (!cache[twaId]) {
         throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
       }
 
-      cache[twaId].showAllEvents();
+      console.log(cache[twaId].getSavedTrace());
     },
-    pageview: function pageview(_ref4) {
+    clearAll: function clearAll(_ref4) {
       var twaId = _ref4.twaId;
+
+      if (!cache[twaId]) {
+        throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
+      }
+
+      cache[twaId].clearAll();
+    },
+    pageview: function pageview(_ref5) {
+      var twaId = _ref5.twaId;
 
       if (!cache[twaId]) {
         throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));

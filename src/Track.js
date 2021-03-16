@@ -1,29 +1,37 @@
+/* eslint-disable no-console */
 import { AppError, Severity } from '@timeone-group/error-logger-js';
 import TWA from './TWA';
-import defaultCollect from './defaultCollect';
+import defaultConfig from './defaultConfig';
 
 const cache = {};
 
 const Track = {
-  init: ({ twaId, collect }) => {
+  init: ({ twaId, collect: config }) => {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
-    cache[twaId] = new TWA(twaId, [...defaultCollect, ...collect]);
+    cache[twaId] = new TWA(twaId, [...defaultConfig, ...config]);
   },
-  show: ({ twaId }) => {
+  showConfig: ({ twaId }) => {
     if (!cache[twaId]) {
       throw new AppError(Severity.ERROR, `twaId ${twaId} not configured`);
     }
 
-    cache[twaId].show();
+    console.log(cache[twaId].getConfig());
   },
-  showAllEvents: ({ twaId }) => {
+  showTrace: ({ twaId }) => {
     if (!cache[twaId]) {
       throw new AppError(Severity.ERROR, `twaId ${twaId} not configured`);
     }
 
-    cache[twaId].showAllEvents();
+    console.log(cache[twaId].getSavedTrace());
+  },
+  clearAll: ({ twaId }) => {
+    if (!cache[twaId]) {
+      throw new AppError(Severity.ERROR, `twaId ${twaId} not configured`);
+    }
+
+    cache[twaId].clearAll();
   },
   pageview: ({ twaId }) => {
     if (!cache[twaId]) {
