@@ -2,8 +2,9 @@ import 'core-js/es/object/assign';
 import 'core-js/es/array/includes';
 import StorageJS from '@timeone-group/storage-js';
 import QueryString from 'query-string';
-
-const TRACE_KEY = 'trace';
+import { AppError, Severity } from '@timeone-group/error-logger-js';
+import Global from './Global';
+import ConsentStatus from './ConsentStatus';
 
 const buildCollectedFromQuery = (query, config) => {
   const parsedQueryString = QueryString.parse(query);
@@ -38,7 +39,8 @@ class TWA {
   constructor(id, config) {
     this.id = id;
     this.config = config;
-    this.store = new StorageJS({ prefix: 'TWA', defaultTTL: 34164000 });
+    this.consentStatus = new ConsentStatus(id);
+    this.setConsentStatus(this.getConsentStatus());
   }
 
   getConfig() {
@@ -46,13 +48,17 @@ class TWA {
   }
 
   getSavedTrace() {
-    const saved = this.store.find(TRACE_KEY);
+    const saved = this.store.find(Global.TRACE_KEY);
     return saved.trace || {};
+  }
+
+  getConsentStatus() {
+    return this.consentStatus.get() || 'exempt';
   }
 
   saveTrace(trace) {
     this.store.save({
-      id: TRACE_KEY,
+      id: Global.TRACE_KEY,
       trace,
     });
   }
@@ -88,6 +94,30 @@ class TWA {
     this.saveTrace(toSaveTrace);
 
     return toSaveTrace;
+  }
+
+  setConsentStatus(status) {
+    this.consentStatus.set(status);
+    switch (status) {
+      case 'optin':
+      case 'exempt':
+        this.store = new StorageJS({
+          storageEngine: 'localStorage',
+          prefix: Global.STORAGE_PREFIX,
+          defaultTTL: Global.STORAGE_DEFAULT_TTL,
+        });
+        break;
+      case 'optout':
+        if (this.store) this.clearAll();
+        this.store = new StorageJS({
+          storageEngine: 'InApp',
+          prefix: Global.STORAGE_PREFIX,
+          defaultTTL: Global.STORAGE_DEFAULT_TTL,
+        });
+        break;
+      default:
+        throw new AppError(Severity.ERROR, 'Unknow status');
+    }
   }
 }
 

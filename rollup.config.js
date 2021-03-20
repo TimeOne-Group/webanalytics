@@ -21,7 +21,6 @@ const plugins = [
       '@timeone-group/error-logger-js',
       '@timeone-group/storage-js',
       'query-string',
-      '@lukeed/uuid',
       // query-string
       'strict-uri-encode',
       'decode-uri-component',

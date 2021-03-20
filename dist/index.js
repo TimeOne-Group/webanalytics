@@ -357,7 +357,7 @@
     };
   }
 
-  /*! @timeone-group/error-logger-js 0.2.2 https://github.com/https://github.com/TimeOne-Group/error-logger-js#readme @license GPL-3.0 */
+  /*! @timeone-group/error-logger-js 0.2.3 https://github.com/https://github.com/TimeOne-Group/error-logger-js#readme @license GPL-3.0 */
   var AppError = /*#__PURE__*/function (_Error) {
     _inherits(AppError, _Error);
 
@@ -603,9 +603,9 @@
   };
 
   var SHARED$1 = '__core-js_shared__';
-  var store$3 = global$2[SHARED$1] || setGlobal$1(SHARED$1, {});
+  var store$4 = global$2[SHARED$1] || setGlobal$1(SHARED$1, {});
 
-  var sharedStore$1 = store$3;
+  var sharedStore$1 = store$4;
 
   var functionToString$1 = Function.toString;
 
@@ -664,20 +664,20 @@
   };
 
   if (nativeWeakMap$1) {
-    var store$2 = sharedStore$1.state || (sharedStore$1.state = new WeakMap$2());
-    var wmget$1 = store$2.get;
-    var wmhas$1 = store$2.has;
-    var wmset$1 = store$2.set;
+    var store$3 = sharedStore$1.state || (sharedStore$1.state = new WeakMap$2());
+    var wmget$1 = store$3.get;
+    var wmhas$1 = store$3.has;
+    var wmset$1 = store$3.set;
     set$1 = function (it, metadata) {
       metadata.facade = it;
-      wmset$1.call(store$2, it, metadata);
+      wmset$1.call(store$3, it, metadata);
       return metadata;
     };
     get$1 = function (it) {
-      return wmget$1.call(store$2, it) || {};
+      return wmget$1.call(store$3, it) || {};
     };
     has$2 = function (it) {
-      return wmhas$1.call(store$2, it);
+      return wmhas$1.call(store$3, it);
     };
   } else {
     var STATE$1 = sharedKey$1('state');
@@ -9324,8 +9324,8 @@
   };
 
   var SHARED = '__core-js_shared__';
-  var store$1 = global$1[SHARED] || setGlobal(SHARED, {});
-  var sharedStore = store$1;
+  var store$2 = global$1[SHARED] || setGlobal(SHARED, {});
+  var sharedStore = store$2;
   var functionToString = Function.toString; // this helper broken in `3.4.1-3.4.4`, so we can't use `shared` helper
 
   if (typeof sharedStore.inspectSource != 'function') {
@@ -9386,23 +9386,23 @@
   };
 
   if (nativeWeakMap) {
-    var store = sharedStore.state || (sharedStore.state = new WeakMap());
-    var wmget = store.get;
-    var wmhas = store.has;
-    var wmset = store.set;
+    var store$1 = sharedStore.state || (sharedStore.state = new WeakMap());
+    var wmget = store$1.get;
+    var wmhas = store$1.has;
+    var wmset = store$1.set;
 
     set = function set(it, metadata) {
       metadata.facade = it;
-      wmset.call(store, it, metadata);
+      wmset.call(store$1, it, metadata);
       return metadata;
     };
 
     get = function get(it) {
-      return wmget.call(store, it) || {};
+      return wmget.call(store$1, it) || {};
     };
 
     has = function has(it) {
-      return wmhas.call(store, it);
+      return wmhas.call(store$1, it);
     };
   } else {
     var STATE = sharedKey('state');
@@ -10962,22 +10962,49 @@
     return Key;
   }();
 
+  var store = {};
+  var Privacy = {
+    setItem: function setItem(key, value) {
+      store[key] = value;
+      return true;
+    },
+    getItem: function getItem(key) {
+      return store[key];
+    },
+    removeItem: function removeItem(key) {
+      delete store[key];
+      return true;
+    }
+  };
+
   var Store = /*#__PURE__*/function () {
     function Store(engine) {
       _classCallCheck(this, Store);
 
-      this.engine = engine;
+      switch (engine) {
+        case 'localStorage':
+        case 'sessionStorage':
+          this.engine = window[engine];
+          break;
+
+        case 'InApp':
+          this.engine = Privacy;
+          break;
+
+        default:
+          throw new AppError(Severity.ERROR, 'Unknow engine');
+      }
     }
 
     _createClass(Store, [{
       key: "set",
       value: function set(key, object) {
-        window[this.engine].setItem(key, Array.from(pako.deflate(JSON.stringify(object))).join(','));
+        this.engine.setItem(key, Array.from(pako.deflate(JSON.stringify(object))).join(','));
       }
     }, {
       key: "get",
       value: function get(key) {
-        var value = window[this.engine].getItem(key);
+        var value = this.engine.getItem(key);
 
         if (value) {
           try {
@@ -10996,7 +11023,7 @@
     }, {
       key: "delete",
       value: function _delete(key) {
-        return window[this.engine].removeItem(key);
+        return this.engine.removeItem(key);
       }
     }]);
 
@@ -11664,7 +11691,208 @@
     };
   });
 
-  var TRACE_KEY = 'trace';
+  var Global = {
+    TRACE_KEY: 'trace',
+    STORAGE_PREFIX: 'TWA',
+    STORAGE_DEFAULT_TTL: 34164000,
+    // 13 months
+    CONSENT_STORAGE_DEFAULT_TTL: 180,
+    // 6 months
+    CONSENT_KEY: 'consent'
+  };
+
+  /*!
+   * JavaScript Cookie v2.2.1
+   * https://github.com/js-cookie/js-cookie
+   *
+   * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+   * Released under the MIT license
+   */
+
+  var js_cookie = createCommonjsModule$1(function (module, exports) {
+  (function (factory) {
+  	var registeredInModuleLoader;
+  	{
+  		module.exports = factory();
+  		registeredInModuleLoader = true;
+  	}
+  	if (!registeredInModuleLoader) {
+  		var OldCookies = window.Cookies;
+  		var api = window.Cookies = factory();
+  		api.noConflict = function () {
+  			window.Cookies = OldCookies;
+  			return api;
+  		};
+  	}
+  }(function () {
+  	function extend () {
+  		var i = 0;
+  		var result = {};
+  		for (; i < arguments.length; i++) {
+  			var attributes = arguments[ i ];
+  			for (var key in attributes) {
+  				result[key] = attributes[key];
+  			}
+  		}
+  		return result;
+  	}
+
+  	function decode (s) {
+  		return s.replace(/(%[0-9A-Z]{2})+/g, decodeURIComponent);
+  	}
+
+  	function init (converter) {
+  		function api() {}
+
+  		function set (key, value, attributes) {
+  			if (typeof document === 'undefined') {
+  				return;
+  			}
+
+  			attributes = extend({
+  				path: '/'
+  			}, api.defaults, attributes);
+
+  			if (typeof attributes.expires === 'number') {
+  				attributes.expires = new Date(new Date() * 1 + attributes.expires * 864e+5);
+  			}
+
+  			// We're using "expires" because "max-age" is not supported by IE
+  			attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
+
+  			try {
+  				var result = JSON.stringify(value);
+  				if (/^[\{\[]/.test(result)) {
+  					value = result;
+  				}
+  			} catch (e) {}
+
+  			value = converter.write ?
+  				converter.write(value, key) :
+  				encodeURIComponent(String(value))
+  					.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+
+  			key = encodeURIComponent(String(key))
+  				.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent)
+  				.replace(/[\(\)]/g, escape);
+
+  			var stringifiedAttributes = '';
+  			for (var attributeName in attributes) {
+  				if (!attributes[attributeName]) {
+  					continue;
+  				}
+  				stringifiedAttributes += '; ' + attributeName;
+  				if (attributes[attributeName] === true) {
+  					continue;
+  				}
+
+  				// Considers RFC 6265 section 5.2:
+  				// ...
+  				// 3.  If the remaining unparsed-attributes contains a %x3B (";")
+  				//     character:
+  				// Consume the characters of the unparsed-attributes up to,
+  				// not including, the first %x3B (";") character.
+  				// ...
+  				stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
+  			}
+
+  			return (document.cookie = key + '=' + value + stringifiedAttributes);
+  		}
+
+  		function get (key, json) {
+  			if (typeof document === 'undefined') {
+  				return;
+  			}
+
+  			var jar = {};
+  			// To prevent the for loop in the first place assign an empty array
+  			// in case there are no cookies at all.
+  			var cookies = document.cookie ? document.cookie.split('; ') : [];
+  			var i = 0;
+
+  			for (; i < cookies.length; i++) {
+  				var parts = cookies[i].split('=');
+  				var cookie = parts.slice(1).join('=');
+
+  				if (!json && cookie.charAt(0) === '"') {
+  					cookie = cookie.slice(1, -1);
+  				}
+
+  				try {
+  					var name = decode(parts[0]);
+  					cookie = (converter.read || converter)(cookie, name) ||
+  						decode(cookie);
+
+  					if (json) {
+  						try {
+  							cookie = JSON.parse(cookie);
+  						} catch (e) {}
+  					}
+
+  					jar[name] = cookie;
+
+  					if (key === name) {
+  						break;
+  					}
+  				} catch (e) {}
+  			}
+
+  			return key ? jar[key] : jar;
+  		}
+
+  		api.set = set;
+  		api.get = function (key) {
+  			return get(key, false /* read as raw */);
+  		};
+  		api.getJSON = function (key) {
+  			return get(key, true /* read as json */);
+  		};
+  		api.remove = function (key, attributes) {
+  			set(key, '', extend(attributes, {
+  				expires: -1
+  			}));
+  		};
+
+  		api.defaults = {};
+
+  		api.withConverter = init;
+
+  		return api;
+  	}
+
+  	return init(function () {});
+  }));
+  });
+
+  var ConsentStatus = /*#__PURE__*/function () {
+    function ConsentStatus(twaId) {
+      _classCallCheck(this, ConsentStatus);
+
+      this.twaId = twaId;
+    }
+
+    _createClass(ConsentStatus, [{
+      key: "set",
+      value: function set(status) {
+        js_cookie.set(this.getKey(), status, {
+          expires: Global.CONSENT_STORAGE_DEFAULT_TTL,
+          sameSite: 'strict'
+        });
+      }
+    }, {
+      key: "get",
+      value: function get() {
+        return js_cookie.get(this.getKey());
+      }
+    }, {
+      key: "getKey",
+      value: function getKey() {
+        return "".concat(Global.STORAGE_PREFIX, "_").concat(Global.CONSENT_KEY, "_").concat(this.twaId);
+      }
+    }]);
+
+    return ConsentStatus;
+  }();
 
   var buildCollectedFromQuery = function buildCollectedFromQuery(query, config) {
     var parsedQueryString = queryString.parse(query);
@@ -11704,10 +11932,8 @@
 
       this.id = id;
       this.config = config;
-      this.store = new StorageJS({
-        prefix: 'TWA',
-        defaultTTL: 34164000
-      });
+      this.consentStatus = new ConsentStatus(id);
+      this.setConsentStatus(this.getConsentStatus());
     }
 
     _createClass(TWA, [{
@@ -11718,14 +11944,19 @@
     }, {
       key: "getSavedTrace",
       value: function getSavedTrace() {
-        var saved = this.store.find(TRACE_KEY);
+        var saved = this.store.find(Global.TRACE_KEY);
         return saved.trace || {};
+      }
+    }, {
+      key: "getConsentStatus",
+      value: function getConsentStatus() {
+        return this.consentStatus.get() || 'exempt';
       }
     }, {
       key: "saveTrace",
       value: function saveTrace(trace) {
         this.store.save({
-          id: TRACE_KEY,
+          id: Global.TRACE_KEY,
           trace: trace
         });
       }
@@ -11763,6 +11994,34 @@
         this.saveTrace(toSaveTrace);
         return toSaveTrace;
       }
+    }, {
+      key: "setConsentStatus",
+      value: function setConsentStatus(status) {
+        this.consentStatus.set(status);
+
+        switch (status) {
+          case 'optin':
+          case 'exempt':
+            this.store = new StorageJS({
+              storageEngine: 'localStorage',
+              prefix: Global.STORAGE_PREFIX,
+              defaultTTL: Global.STORAGE_DEFAULT_TTL
+            });
+            break;
+
+          case 'optout':
+            if (this.store) this.clearAll();
+            this.store = new StorageJS({
+              storageEngine: 'InApp',
+              prefix: Global.STORAGE_PREFIX,
+              defaultTTL: Global.STORAGE_DEFAULT_TTL
+            });
+            break;
+
+          default:
+            throw new AppError(Severity.ERROR, 'Unknow status');
+        }
+      }
     }]);
 
     return TWA;
@@ -11786,6 +12045,13 @@
   }];
 
   var cache = {};
+
+  var checkIfExist = function checkIfExist(twaId) {
+    if (!cache[twaId]) {
+      throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
+    }
+  };
+
   var Track = {
     init: function init(_ref) {
       var twaId = _ref.twaId,
@@ -11797,40 +12063,44 @@
 
       cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config)));
     },
-    showConfig: function showConfig(_ref2) {
+    optin: function optin(_ref2) {
       var twaId = _ref2.twaId;
-
-      if (!cache[twaId]) {
-        throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
-      }
-
+      checkIfExist(twaId);
+      cache[twaId].setConsentStatus('optin');
+    },
+    exempt: function exempt(_ref3) {
+      var twaId = _ref3.twaId;
+      checkIfExist(twaId);
+      cache[twaId].setConsentStatus('exempt');
+    },
+    optout: function optout(_ref4) {
+      var twaId = _ref4.twaId;
+      checkIfExist(twaId);
+      cache[twaId].setConsentStatus('optout');
+    },
+    showConfig: function showConfig(_ref5) {
+      var twaId = _ref5.twaId;
+      checkIfExist(twaId);
       console.log(cache[twaId].getConfig());
     },
-    showTrace: function showTrace(_ref3) {
-      var twaId = _ref3.twaId;
-
-      if (!cache[twaId]) {
-        throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
-      }
-
+    showTrace: function showTrace(_ref6) {
+      var twaId = _ref6.twaId;
+      checkIfExist(twaId);
       console.log(cache[twaId].getSavedTrace());
     },
-    clearAll: function clearAll(_ref4) {
-      var twaId = _ref4.twaId;
-
-      if (!cache[twaId]) {
-        throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
-      }
-
+    showConsentStatus: function showConsentStatus(_ref7) {
+      var twaId = _ref7.twaId;
+      checkIfExist(twaId);
+      console.log(cache[twaId].getConsentStatus());
+    },
+    clearAll: function clearAll(_ref8) {
+      var twaId = _ref8.twaId;
+      checkIfExist(twaId);
       cache[twaId].clearAll();
     },
-    pageview: function pageview(_ref5) {
-      var twaId = _ref5.twaId;
-
-      if (!cache[twaId]) {
-        throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
-      }
-
+    pageview: function pageview(_ref9) {
+      var twaId = _ref9.twaId;
+      checkIfExist(twaId);
       cache[twaId].pushEvent({
         type: 'pageview'
       });

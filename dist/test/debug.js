@@ -1,4 +1,4 @@
-function TWA_showConfig(id) {
+function showConfig(id) {
   TWA.push([
     'showConfig',
     {
@@ -7,7 +7,7 @@ function TWA_showConfig(id) {
   ]);
 }
 
-function TWA_showTrace(id) {
+function showTrace(id) {
   TWA.push([
     'showTrace',
     {
@@ -16,9 +16,45 @@ function TWA_showTrace(id) {
   ]);
 }
 
-function TWA_clearAll(id) {
+function showConsentStatus(id) {
+  TWA.push([
+    'showConsentStatus',
+    {
+      twaId: id,
+    },
+  ]);
+}
+
+function clearAll(id) {
   TWA.push([
     'clearAll',
+    {
+      twaId: id,
+    },
+  ]);
+}
+
+function optin(id) {
+  TWA.push([
+    'optin',
+    {
+      twaId: id,
+    },
+  ]);
+}
+
+function optout(id) {
+  TWA.push([
+    'optout',
+    {
+      twaId: id,
+    },
+  ]);
+}
+
+function exempt(id) {
+  TWA.push([
+    'exempt',
     {
       twaId: id,
     },
