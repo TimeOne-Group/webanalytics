@@ -4,4 +4,5 @@ export default {
   STORAGE_DEFAULT_TTL: 34164000, // 13 months
   CONSENT_STORAGE_DEFAULT_TTL: 180, // 6 months
   CONSENT_KEY: 'consent',
+  SALT_KEY: 'salt',
 };

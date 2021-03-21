@@ -20,6 +20,8 @@ const plugins = [
       'pako',
       '@timeone-group/error-logger-js',
       '@timeone-group/storage-js',
+      '@lukeed/uuid',
+      'jssha',
       'query-string',
       // query-string
       'strict-uri-encode',

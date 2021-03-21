@@ -3,6 +3,8 @@ import 'core-js/es/array/includes';
 import StorageJS from '@timeone-group/storage-js';
 import QueryString from 'query-string';
 import { AppError, Severity } from '@timeone-group/error-logger-js';
+import { v4 } from '@lukeed/uuid';
+import JsSHA from 'jssha';
 import Global from './Global';
 import ConsentStatus from './ConsentStatus';
 
@@ -56,6 +58,19 @@ class TWA {
     return this.consentStatus.get() || 'exempt';
   }
 
+  getSalt() {
+    const savedSalt = this.storeSession.find(Global.SALT_KEY);
+    if (!savedSalt.salt) {
+      savedSalt.salt = v4();
+      this.setSalt(savedSalt.salt);
+    }
+    return savedSalt.salt;
+  }
+
+  setSalt(salt) {
+    this.storeSession.save({ id: Global.SALT_KEY, salt });
+  }
+
   saveTrace(trace) {
     this.store.save({
       id: Global.TRACE_KEY,
@@ -63,9 +78,29 @@ class TWA {
     });
   }
 
+  buildAnonymiseEvent(event) {
+    const anonymiseEvent = Object.assign(event, {});
+
+    if (event.type === 'lead' || event.type === 'sale') {
+      let eventId;
+      eventId = v4();
+      if (event.convId) {
+        eventId = event.convId;
+        delete anonymiseEvent.convId;
+      }
+      const shaObj = new JsSHA('SHA-256', 'TEXT', { encoding: 'UTF8' });
+      shaObj.update(`${this.getSalt()}${eventId}`);
+      anonymiseEvent.conv_id = shaObj.getHash('HEX');
+    }
+
+    return anonymiseEvent;
+  }
+
   pushEvent(event) {
+    const anonymiseEvent = this.buildAnonymiseEvent(event);
+
     const toSaveEvent = Object.assign(
-      event,
+      anonymiseEvent,
       this.buildTrace(window.location.search),
       {
         page: buildAnonymusPageFromLocation(window.location),
@@ -106,6 +141,11 @@ class TWA {
           prefix: Global.STORAGE_PREFIX,
           defaultTTL: Global.STORAGE_DEFAULT_TTL,
         });
+        this.storeSession = new StorageJS({
+          storageEngine: 'sessionStorage',
+          prefix: Global.STORAGE_PREFIX,
+          defaultTTL: Global.STORAGE_DEFAULT_TTL,
+        });
         break;
       case 'optout':
         if (this.store) this.clearAll();
@@ -114,6 +154,7 @@ class TWA {
           prefix: Global.STORAGE_PREFIX,
           defaultTTL: Global.STORAGE_DEFAULT_TTL,
         });
+        this.storeSession = this.store;
         break;
       default:
         throw new AppError(Severity.ERROR, 'Unknow status');

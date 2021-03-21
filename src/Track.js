@@ -50,6 +50,14 @@ const Track = {
     checkIfExist(twaId);
     cache[twaId].pushEvent({ type: 'pageview' });
   },
+  lead: ({ twaId, convId }) => {
+    checkIfExist(twaId);
+    cache[twaId].pushEvent({ type: 'lead', convId });
+  },
+  sale: ({ twaId }) => {
+    checkIfExist(twaId);
+    cache[twaId].pushEvent({ type: 'sale' });
+  },
 };
 
 export default Track;
