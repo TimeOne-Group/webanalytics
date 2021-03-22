@@ -13109,7 +13109,8 @@
         var toSaveEvent = Object.assign(anonymiseEvent, this.buildTrace(window.location.search), {
           page: buildAnonymusPageFromLocation(window.location),
           referer: buildAnonymusReferer(window.document.referrer),
-          time: new Date().getTime()
+          time: new Date().getTime(),
+          status: this.getConsentStatus()
         }); // eslint-disable-next-line no-console
 
         console.log(toSaveEvent);
