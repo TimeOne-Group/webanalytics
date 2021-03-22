@@ -13025,6 +13025,38 @@
     return '';
   };
 
+  var buildEvent = function buildEvent(event) {
+    var newEvent = {};
+
+    if (event.type) {
+      newEvent.type = event.type;
+    } else {
+      throw new AppError(Severity.ERROR, 'Event must have type');
+    }
+
+    if (event.type === 'lead' || event.type === 'sale') {
+      if (event.convDatas) {
+        newEvent.conv_datas = event.convDatas;
+      }
+
+      if (event.convId) {
+        newEvent.conv_id = event.convId;
+      }
+
+      if (event.type === 'sale' && event.convTurnover) {
+        newEvent.conv_turnover = event.convTurnover;
+
+        if (!event.convCurrency) {
+          newEvent.conv_currency = 'EUR';
+        } else {
+          newEvent.conv_currency = event.convCurrency;
+        }
+      }
+    }
+
+    return newEvent;
+  };
+
   var TWA = /*#__PURE__*/function () {
     function TWA(id, config) {
       _classCallCheck(this, TWA);
@@ -13085,33 +13117,37 @@
         var anonymiseEvent = Object.assign(event, {});
 
         if (event.type === 'lead' || event.type === 'sale') {
-          var eventId;
-          eventId = v4();
+          var convId;
 
-          if (event.convId) {
-            eventId = event.convId;
-            delete anonymiseEvent.convId;
+          if (event.conv_id) {
+            convId = event.conv_id;
+          } else {
+            convId = v4();
           }
 
           var shaObj = new _default('SHA-256', 'TEXT', {
             encoding: 'UTF8'
           });
-          shaObj.update("".concat(this.getSalt()).concat(eventId));
+          shaObj.update("".concat(this.getSalt()).concat(convId));
           anonymiseEvent.conv_id = shaObj.getHash('HEX');
         }
 
         return anonymiseEvent;
       }
     }, {
-      key: "pushEvent",
-      value: function pushEvent(event) {
-        var anonymiseEvent = this.buildAnonymiseEvent(event);
-        var toSaveEvent = Object.assign(anonymiseEvent, this.buildTrace(window.location.search), {
+      key: "buildEventWithGlobalData",
+      value: function buildEventWithGlobalData(event) {
+        return Object.assign(event, this.buildTrace(window.location.search), {
           page: buildAnonymusPageFromLocation(window.location),
           referer: buildAnonymusReferer(window.document.referrer),
           time: new Date().getTime(),
           status: this.getConsentStatus()
-        }); // eslint-disable-next-line no-console
+        });
+      }
+    }, {
+      key: "pushEvent",
+      value: function pushEvent(event) {
+        var toSaveEvent = this.buildEventWithGlobalData(this.buildAnonymiseEvent(buildEvent(event))); // eslint-disable-next-line no-console
 
         console.log(toSaveEvent);
       }
@@ -13257,18 +13293,28 @@
     },
     lead: function lead(_ref10) {
       var twaId = _ref10.twaId,
-          convId = _ref10.convId;
+          convId = _ref10.convId,
+          convDatas = _ref10.convDatas;
       checkIfExist(twaId);
       cache[twaId].pushEvent({
         type: 'lead',
-        convId: convId
+        convId: convId,
+        convDatas: convDatas
       });
     },
     sale: function sale(_ref11) {
-      var twaId = _ref11.twaId;
+      var twaId = _ref11.twaId,
+          convId = _ref11.convId,
+          convDatas = _ref11.convDatas,
+          convTurnover = _ref11.convTurnover,
+          convCurrency = _ref11.convCurrency;
       checkIfExist(twaId);
       cache[twaId].pushEvent({
-        type: 'sale'
+        type: 'sale',
+        convId: convId,
+        convDatas: convDatas,
+        convTurnover: convTurnover,
+        convCurrency: convCurrency
       });
     }
   };

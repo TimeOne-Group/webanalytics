@@ -50,13 +50,19 @@ const Track = {
     checkIfExist(twaId);
     cache[twaId].pushEvent({ type: 'pageview' });
   },
-  lead: ({ twaId, convId }) => {
+  lead: ({ twaId, convId, convDatas }) => {
     checkIfExist(twaId);
-    cache[twaId].pushEvent({ type: 'lead', convId });
+    cache[twaId].pushEvent({ type: 'lead', convId, convDatas });
   },
-  sale: ({ twaId }) => {
+  sale: ({ twaId, convId, convDatas, convTurnover, convCurrency }) => {
     checkIfExist(twaId);
-    cache[twaId].pushEvent({ type: 'sale' });
+    cache[twaId].pushEvent({
+      type: 'sale',
+      convId,
+      convDatas,
+      convTurnover,
+      convCurrency,
+    });
   },
 };
 

@@ -37,6 +37,37 @@ const buildAnonymusReferer = (referer) => {
   return '';
 };
 
+const buildEvent = (event) => {
+  const newEvent = {};
+
+  if (event.type) {
+    newEvent.type = event.type;
+  } else {
+    throw new AppError(Severity.ERROR, 'Event must have type');
+  }
+
+  if (event.type === 'lead' || event.type === 'sale') {
+    if (event.convDatas) {
+      newEvent.conv_datas = event.convDatas;
+    }
+
+    if (event.convId) {
+      newEvent.conv_id = event.convId;
+    }
+
+    if (event.type === 'sale' && event.convTurnover) {
+      newEvent.conv_turnover = event.convTurnover;
+      if (!event.convCurrency) {
+        newEvent.conv_currency = 'EUR';
+      } else {
+        newEvent.conv_currency = event.convCurrency;
+      }
+    }
+  }
+
+  return newEvent;
+};
+
 class TWA {
   constructor(id, config) {
     this.id = id;
@@ -82,32 +113,32 @@ class TWA {
     const anonymiseEvent = Object.assign(event, {});
 
     if (event.type === 'lead' || event.type === 'sale') {
-      let eventId;
-      eventId = v4();
-      if (event.convId) {
-        eventId = event.convId;
-        delete anonymiseEvent.convId;
+      let convId;
+      if (event.conv_id) {
+        convId = event.conv_id;
+      } else {
+        convId = v4();
       }
       const shaObj = new JsSHA('SHA-256', 'TEXT', { encoding: 'UTF8' });
-      shaObj.update(`${this.getSalt()}${eventId}`);
+      shaObj.update(`${this.getSalt()}${convId}`);
       anonymiseEvent.conv_id = shaObj.getHash('HEX');
     }
 
     return anonymiseEvent;
   }
 
-  pushEvent(event) {
-    const anonymiseEvent = this.buildAnonymiseEvent(event);
+  buildEventWithGlobalData(event) {
+    return Object.assign(event, this.buildTrace(window.location.search), {
+      page: buildAnonymusPageFromLocation(window.location),
+      referer: buildAnonymusReferer(window.document.referrer),
+      time: new Date().getTime(),
+      status: this.getConsentStatus(),
+    });
+  }
 
-    const toSaveEvent = Object.assign(
-      anonymiseEvent,
-      this.buildTrace(window.location.search),
-      {
-        page: buildAnonymusPageFromLocation(window.location),
-        referer: buildAnonymusReferer(window.document.referrer),
-        time: new Date().getTime(),
-        status: this.getConsentStatus(),
-      }
+  pushEvent(event) {
+    const toSaveEvent = this.buildEventWithGlobalData(
+      this.buildAnonymiseEvent(buildEvent(event))
     );
     // eslint-disable-next-line no-console
     console.log(toSaveEvent);
