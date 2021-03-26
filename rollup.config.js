@@ -17,10 +17,8 @@ const plugins = [
   babel({
     babelHelpers: 'bundled',
     exclude: babelLoaderExcludeNodeModulesExcept([
-      'pako',
       '@timeone-group/error-logger-js',
       '@timeone-group/storage-js',
-      '@lukeed/uuid',
       'jssha',
     ]),
   }),

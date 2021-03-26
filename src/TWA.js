@@ -2,11 +2,11 @@ import 'core-js/es/object/assign';
 import 'core-js/es/array/includes';
 import StorageJS from '@timeone-group/storage-js';
 import { AppError, Severity } from '@timeone-group/error-logger-js';
-import { v4 } from '@lukeed/uuid';
 import JsSHA from 'jssha';
 import Global from './Global';
 import ConsentStatus from './ConsentStatus';
-import parseQuery from './lib/parse_str';
+import parseQuery from './lib/locutus/parse_str';
+import uniqid from './lib/locutus/uniqid';
 
 const buildCollectedFromQuery = (query, config) => {
   const parsedQueryString = {};
@@ -93,7 +93,7 @@ class TWA {
   getSalt() {
     const savedSalt = this.storeSession.find(Global.SALT_KEY);
     if (!savedSalt.salt) {
-      savedSalt.salt = v4();
+      savedSalt.salt = uniqid('salt', true);
       this.setSalt(savedSalt.salt);
     }
     return savedSalt.salt;
@@ -118,7 +118,7 @@ class TWA {
       if (event.conv_id) {
         convId = event.conv_id;
       } else {
-        convId = v4();
+        convId = uniqid(event.type, true);
       }
       const shaObj = new JsSHA('SHA-256', 'TEXT', { encoding: 'UTF8' });
       shaObj.update(`${this.getSalt()}${convId}`);
