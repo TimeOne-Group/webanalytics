@@ -224,10 +224,6 @@
     };
   }
 
-  function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
-  }
-
   function _toArray(arr) {
     return _arrayWithHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableRest();
   }
@@ -246,33 +242,6 @@
 
   function _iterableToArray(iter) {
     if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-  }
-
-  function _iterableToArrayLimit(arr, i) {
-    if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"] != null) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
   }
 
   function _unsupportedIterableToArray(o, minLen) {
@@ -298,63 +267,6 @@
 
   function _nonIterableRest() {
     throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-
-  function _createForOfIteratorHelper(o, allowArrayLike) {
-    var it;
-
-    if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
-      if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
-        if (it) o = it;
-        var i = 0;
-
-        var F = function () {};
-
-        return {
-          s: F,
-          n: function () {
-            if (i >= o.length) return {
-              done: true
-            };
-            return {
-              done: false,
-              value: o[i++]
-            };
-          },
-          e: function (e) {
-            throw e;
-          },
-          f: F
-        };
-      }
-
-      throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-    }
-
-    var normalCompletion = true,
-        didErr = false,
-        err;
-    return {
-      s: function () {
-        it = o[Symbol.iterator]();
-      },
-      n: function () {
-        var step = it.next();
-        normalCompletion = step.done;
-        return step;
-      },
-      e: function (e) {
-        didErr = true;
-        err = e;
-      },
-      f: function () {
-        try {
-          if (!normalCompletion && it.return != null) it.return();
-        } finally {
-          if (didErr) throw err;
-        }
-      }
-    };
   }
 
   /*! @timeone-group/error-logger-js 0.2.3 https://github.com/https://github.com/TimeOne-Group/error-logger-js#readme @license GPL-3.0 */
@@ -6694,7 +6606,7 @@
   var DISTEXT = 24;
   /* i: waiting for distance extra bits */
 
-  var MATCH = 25;
+  var MATCH$2 = 25;
   /* o: waiting for output space to copy string */
 
   var LIT = 26;
@@ -8328,11 +8240,11 @@
           //Tracevv((stderr, "inflate:         distance %u\n", state.offset));
 
 
-          state.mode = MATCH;
+          state.mode = MATCH$2;
 
         /* falls through */
 
-        case MATCH:
+        case MATCH$2:
           if (left === 0) {
             break inf_leave;
           }
@@ -11134,563 +11046,6 @@
     return StorageJS;
   }();
 
-  var strictUriEncode = function strictUriEncode(str) {
-    return encodeURIComponent(str).replace(/[!'()*]/g, function (x) {
-      return "%".concat(x.charCodeAt(0).toString(16).toUpperCase());
-    });
-  };
-
-  var token = '%[a-f0-9]{2}';
-  var singleMatcher = new RegExp(token, 'gi');
-  var multiMatcher = new RegExp('(' + token + ')+', 'gi');
-
-  function decodeComponents(components, split) {
-    try {
-      // Try to decode the entire string first
-      return decodeURIComponent(components.join(''));
-    } catch (err) {// Do nothing
-    }
-
-    if (components.length === 1) {
-      return components;
-    }
-
-    split = split || 1; // Split the array in 2 parts
-
-    var left = components.slice(0, split);
-    var right = components.slice(split);
-    return Array.prototype.concat.call([], decodeComponents(left), decodeComponents(right));
-  }
-
-  function decode(input) {
-    try {
-      return decodeURIComponent(input);
-    } catch (err) {
-      var tokens = input.match(singleMatcher);
-
-      for (var i = 1; i < tokens.length; i++) {
-        input = decodeComponents(tokens, i).join('');
-        tokens = input.match(singleMatcher);
-      }
-
-      return input;
-    }
-  }
-
-  function customDecodeURIComponent(input) {
-    // Keep track of all the replacements and prefill the map with the `BOM`
-    var replaceMap = {
-      '%FE%FF': "\uFFFD\uFFFD",
-      '%FF%FE': "\uFFFD\uFFFD"
-    };
-    var match = multiMatcher.exec(input);
-
-    while (match) {
-      try {
-        // Decode as big chunks as possible
-        replaceMap[match[0]] = decodeURIComponent(match[0]);
-      } catch (err) {
-        var result = decode(match[0]);
-
-        if (result !== match[0]) {
-          replaceMap[match[0]] = result;
-        }
-      }
-
-      match = multiMatcher.exec(input);
-    } // Add `%C2` at the end of the map to make sure it does not replace the combinator before everything else
-
-
-    replaceMap['%C2'] = "\uFFFD";
-    var entries = Object.keys(replaceMap);
-
-    for (var i = 0; i < entries.length; i++) {
-      // Replace all decoded components
-      var key = entries[i];
-      input = input.replace(new RegExp(key, 'g'), replaceMap[key]);
-    }
-
-    return input;
-  }
-
-  var decodeUriComponent = function decodeUriComponent(encodedURI) {
-    if (typeof encodedURI !== 'string') {
-      throw new TypeError('Expected `encodedURI` to be of type `string`, got `' + _typeof(encodedURI) + '`');
-    }
-
-    try {
-      encodedURI = encodedURI.replace(/\+/g, ' '); // Try the built in decoder first
-
-      return decodeURIComponent(encodedURI);
-    } catch (err) {
-      // Fallback to a more advanced decoder
-      return customDecodeURIComponent(encodedURI);
-    }
-  };
-
-  var splitOnFirst = function splitOnFirst(string, separator) {
-    if (!(typeof string === 'string' && typeof separator === 'string')) {
-      throw new TypeError('Expected the arguments to be of type `string`');
-    }
-
-    if (separator === '') {
-      return [string];
-    }
-
-    var separatorIndex = string.indexOf(separator);
-
-    if (separatorIndex === -1) {
-      return [string];
-    }
-
-    return [string.slice(0, separatorIndex), string.slice(separatorIndex + separator.length)];
-  };
-
-  var filterObj = function filterObj(obj, predicate) {
-    var ret = {};
-    var keys = Object.keys(obj);
-    var isArr = Array.isArray(predicate);
-
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var val = obj[key];
-
-      if (isArr ? predicate.indexOf(key) !== -1 : predicate(key, val, obj)) {
-        ret[key] = val;
-      }
-    }
-
-    return ret;
-  };
-
-  var queryString = createCommonjsModule$1(function (module, exports) {
-
-    var isNullOrUndefined = function isNullOrUndefined(value) {
-      return value === null || value === undefined;
-    };
-
-    function encoderForArrayFormat(options) {
-      switch (options.arrayFormat) {
-        case 'index':
-          return function (key) {
-            return function (result, value) {
-              var index = result.length;
-
-              if (value === undefined || options.skipNull && value === null || options.skipEmptyString && value === '') {
-                return result;
-              }
-
-              if (value === null) {
-                return [].concat(_toConsumableArray(result), [[encode(key, options), '[', index, ']'].join('')]);
-              }
-
-              return [].concat(_toConsumableArray(result), [[encode(key, options), '[', encode(index, options), ']=', encode(value, options)].join('')]);
-            };
-          };
-
-        case 'bracket':
-          return function (key) {
-            return function (result, value) {
-              if (value === undefined || options.skipNull && value === null || options.skipEmptyString && value === '') {
-                return result;
-              }
-
-              if (value === null) {
-                return [].concat(_toConsumableArray(result), [[encode(key, options), '[]'].join('')]);
-              }
-
-              return [].concat(_toConsumableArray(result), [[encode(key, options), '[]=', encode(value, options)].join('')]);
-            };
-          };
-
-        case 'comma':
-        case 'separator':
-          return function (key) {
-            return function (result, value) {
-              if (value === null || value === undefined || value.length === 0) {
-                return result;
-              }
-
-              if (result.length === 0) {
-                return [[encode(key, options), '=', encode(value, options)].join('')];
-              }
-
-              return [[result, encode(value, options)].join(options.arrayFormatSeparator)];
-            };
-          };
-
-        default:
-          return function (key) {
-            return function (result, value) {
-              if (value === undefined || options.skipNull && value === null || options.skipEmptyString && value === '') {
-                return result;
-              }
-
-              if (value === null) {
-                return [].concat(_toConsumableArray(result), [encode(key, options)]);
-              }
-
-              return [].concat(_toConsumableArray(result), [[encode(key, options), '=', encode(value, options)].join('')]);
-            };
-          };
-      }
-    }
-
-    function parserForArrayFormat(options) {
-      var result;
-
-      switch (options.arrayFormat) {
-        case 'index':
-          return function (key, value, accumulator) {
-            result = /\[(\d*)\]$/.exec(key);
-            key = key.replace(/\[\d*\]$/, '');
-
-            if (!result) {
-              accumulator[key] = value;
-              return;
-            }
-
-            if (accumulator[key] === undefined) {
-              accumulator[key] = {};
-            }
-
-            accumulator[key][result[1]] = value;
-          };
-
-        case 'bracket':
-          return function (key, value, accumulator) {
-            result = /(\[\])$/.exec(key);
-            key = key.replace(/\[\]$/, '');
-
-            if (!result) {
-              accumulator[key] = value;
-              return;
-            }
-
-            if (accumulator[key] === undefined) {
-              accumulator[key] = [value];
-              return;
-            }
-
-            accumulator[key] = [].concat(accumulator[key], value);
-          };
-
-        case 'comma':
-        case 'separator':
-          return function (key, value, accumulator) {
-            var isArray = typeof value === 'string' && value.includes(options.arrayFormatSeparator);
-            var isEncodedArray = typeof value === 'string' && !isArray && decode(value, options).includes(options.arrayFormatSeparator);
-            value = isEncodedArray ? decode(value, options) : value;
-            var newValue = isArray || isEncodedArray ? value.split(options.arrayFormatSeparator).map(function (item) {
-              return decode(item, options);
-            }) : value === null ? value : decode(value, options);
-            accumulator[key] = newValue;
-          };
-
-        default:
-          return function (key, value, accumulator) {
-            if (accumulator[key] === undefined) {
-              accumulator[key] = value;
-              return;
-            }
-
-            accumulator[key] = [].concat(accumulator[key], value);
-          };
-      }
-    }
-
-    function validateArrayFormatSeparator(value) {
-      if (typeof value !== 'string' || value.length !== 1) {
-        throw new TypeError('arrayFormatSeparator must be single character string');
-      }
-    }
-
-    function encode(value, options) {
-      if (options.encode) {
-        return options.strict ? strictUriEncode(value) : encodeURIComponent(value);
-      }
-
-      return value;
-    }
-
-    function decode(value, options) {
-      if (options.decode) {
-        return decodeUriComponent(value);
-      }
-
-      return value;
-    }
-
-    function keysSorter(input) {
-      if (Array.isArray(input)) {
-        return input.sort();
-      }
-
-      if (_typeof(input) === 'object') {
-        return keysSorter(Object.keys(input)).sort(function (a, b) {
-          return Number(a) - Number(b);
-        }).map(function (key) {
-          return input[key];
-        });
-      }
-
-      return input;
-    }
-
-    function removeHash(input) {
-      var hashStart = input.indexOf('#');
-
-      if (hashStart !== -1) {
-        input = input.slice(0, hashStart);
-      }
-
-      return input;
-    }
-
-    function getHash(url) {
-      var hash = '';
-      var hashStart = url.indexOf('#');
-
-      if (hashStart !== -1) {
-        hash = url.slice(hashStart);
-      }
-
-      return hash;
-    }
-
-    function extract(input) {
-      input = removeHash(input);
-      var queryStart = input.indexOf('?');
-
-      if (queryStart === -1) {
-        return '';
-      }
-
-      return input.slice(queryStart + 1);
-    }
-
-    function parseValue(value, options) {
-      if (options.parseNumbers && !Number.isNaN(Number(value)) && typeof value === 'string' && value.trim() !== '') {
-        value = Number(value);
-      } else if (options.parseBooleans && value !== null && (value.toLowerCase() === 'true' || value.toLowerCase() === 'false')) {
-        value = value.toLowerCase() === 'true';
-      }
-
-      return value;
-    }
-
-    function parse(query, options) {
-      options = Object.assign({
-        decode: true,
-        sort: true,
-        arrayFormat: 'none',
-        arrayFormatSeparator: ',',
-        parseNumbers: false,
-        parseBooleans: false
-      }, options);
-      validateArrayFormatSeparator(options.arrayFormatSeparator);
-      var formatter = parserForArrayFormat(options); // Create an object with no prototype
-
-      var ret = Object.create(null);
-
-      if (typeof query !== 'string') {
-        return ret;
-      }
-
-      query = query.trim().replace(/^[?#&]/, '');
-
-      if (!query) {
-        return ret;
-      }
-
-      var _iterator = _createForOfIteratorHelper(query.split('&')),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var param = _step.value;
-
-          if (param === '') {
-            continue;
-          }
-
-          var _splitOnFirst = splitOnFirst(options.decode ? param.replace(/\+/g, ' ') : param, '='),
-              _splitOnFirst2 = _slicedToArray(_splitOnFirst, 2),
-              _key = _splitOnFirst2[0],
-              _value = _splitOnFirst2[1]; // Missing `=` should be `null`:
-          // http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-
-
-          _value = _value === undefined ? null : ['comma', 'separator'].includes(options.arrayFormat) ? _value : decode(_value, options);
-          formatter(decode(_key, options), _value, ret);
-        }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
-      }
-
-      for (var _i = 0, _Object$keys = Object.keys(ret); _i < _Object$keys.length; _i++) {
-        var key = _Object$keys[_i];
-        var value = ret[key];
-
-        if (_typeof(value) === 'object' && value !== null) {
-          for (var _i2 = 0, _Object$keys2 = Object.keys(value); _i2 < _Object$keys2.length; _i2++) {
-            var k = _Object$keys2[_i2];
-            value[k] = parseValue(value[k], options);
-          }
-        } else {
-          ret[key] = parseValue(value, options);
-        }
-      }
-
-      if (options.sort === false) {
-        return ret;
-      }
-
-      return (options.sort === true ? Object.keys(ret).sort() : Object.keys(ret).sort(options.sort)).reduce(function (result, key) {
-        var value = ret[key];
-
-        if (Boolean(value) && _typeof(value) === 'object' && !Array.isArray(value)) {
-          // Sort object keys, not values
-          result[key] = keysSorter(value);
-        } else {
-          result[key] = value;
-        }
-
-        return result;
-      }, Object.create(null));
-    }
-
-    exports.extract = extract;
-    exports.parse = parse;
-
-    exports.stringify = function (object, options) {
-      if (!object) {
-        return '';
-      }
-
-      options = Object.assign({
-        encode: true,
-        strict: true,
-        arrayFormat: 'none',
-        arrayFormatSeparator: ','
-      }, options);
-      validateArrayFormatSeparator(options.arrayFormatSeparator);
-
-      var shouldFilter = function shouldFilter(key) {
-        return options.skipNull && isNullOrUndefined(object[key]) || options.skipEmptyString && object[key] === '';
-      };
-
-      var formatter = encoderForArrayFormat(options);
-      var objectCopy = {};
-
-      for (var _i3 = 0, _Object$keys3 = Object.keys(object); _i3 < _Object$keys3.length; _i3++) {
-        var key = _Object$keys3[_i3];
-
-        if (!shouldFilter(key)) {
-          objectCopy[key] = object[key];
-        }
-      }
-
-      var keys = Object.keys(objectCopy);
-
-      if (options.sort !== false) {
-        keys.sort(options.sort);
-      }
-
-      return keys.map(function (key) {
-        var value = object[key];
-
-        if (value === undefined) {
-          return '';
-        }
-
-        if (value === null) {
-          return encode(key, options);
-        }
-
-        if (Array.isArray(value)) {
-          return value.reduce(formatter(key), []).join('&');
-        }
-
-        return encode(key, options) + '=' + encode(value, options);
-      }).filter(function (x) {
-        return x.length > 0;
-      }).join('&');
-    };
-
-    exports.parseUrl = function (url, options) {
-      options = Object.assign({
-        decode: true
-      }, options);
-
-      var _splitOnFirst3 = splitOnFirst(url, '#'),
-          _splitOnFirst4 = _slicedToArray(_splitOnFirst3, 2),
-          url_ = _splitOnFirst4[0],
-          hash = _splitOnFirst4[1];
-
-      return Object.assign({
-        url: url_.split('?')[0] || '',
-        query: parse(extract(url), options)
-      }, options && options.parseFragmentIdentifier && hash ? {
-        fragmentIdentifier: decode(hash, options)
-      } : {});
-    };
-
-    exports.stringifyUrl = function (object, options) {
-      options = Object.assign({
-        encode: true,
-        strict: true
-      }, options);
-      var url = removeHash(object.url).split('?')[0] || '';
-      var queryFromUrl = exports.extract(object.url);
-      var parsedQueryFromUrl = exports.parse(queryFromUrl, {
-        sort: false
-      });
-      var query = Object.assign(parsedQueryFromUrl, object.query);
-      var queryString = exports.stringify(query, options);
-
-      if (queryString) {
-        queryString = "?".concat(queryString);
-      }
-
-      var hash = getHash(object.url);
-
-      if (object.fragmentIdentifier) {
-        hash = "#".concat(encode(object.fragmentIdentifier, options));
-      }
-
-      return "".concat(url).concat(queryString).concat(hash);
-    };
-
-    exports.pick = function (input, filter, options) {
-      options = Object.assign({
-        parseFragmentIdentifier: true
-      }, options);
-
-      var _exports$parseUrl = exports.parseUrl(input, options),
-          url = _exports$parseUrl.url,
-          query = _exports$parseUrl.query,
-          fragmentIdentifier = _exports$parseUrl.fragmentIdentifier;
-
-      return exports.stringifyUrl({
-        url: url,
-        query: filterObj(query, filter),
-        fragmentIdentifier: fragmentIdentifier
-      }, options);
-    };
-
-    exports.exclude = function (input, filter, options) {
-      var exclusionFilter = Array.isArray(filter) ? function (key) {
-        return !filter.includes(key);
-      } : function (key, value) {
-        return !filter(key, value);
-      };
-      return exports.pick(input, exclusionFilter, options);
-    };
-  });
-
   var IDX = 256,
       HEX = [],
       BUFFER;
@@ -12993,8 +12348,208 @@
     return ConsentStatus;
   }();
 
+  var MATCH$1 = wellKnownSymbol$1('match');
+
+  // `IsRegExp` abstract operation
+  // https://tc39.es/ecma262/#sec-isregexp
+  var isRegexp = function (it) {
+    var isRegExp;
+    return isObject$1(it) && ((isRegExp = it[MATCH$1]) !== undefined ? !!isRegExp : classofRaw$1(it) == 'RegExp');
+  };
+
+  var notARegexp = function (it) {
+    if (isRegexp(it)) {
+      throw TypeError("The method doesn't accept regular expressions");
+    } return it;
+  };
+
+  var MATCH = wellKnownSymbol$1('match');
+
+  var correctIsRegexpLogic = function (METHOD_NAME) {
+    var regexp = /./;
+    try {
+      '/./'[METHOD_NAME](regexp);
+    } catch (error1) {
+      try {
+        regexp[MATCH] = false;
+        return '/./'[METHOD_NAME](regexp);
+      } catch (error2) { /* empty */ }
+    } return false;
+  };
+
+  // `String.prototype.includes` method
+  // https://tc39.es/ecma262/#sec-string.prototype.includes
+  _export$1({ target: 'String', proto: true, forced: !correctIsRegexpLogic('includes') }, {
+    includes: function includes(searchString /* , position = 0 */) {
+      return !!~String(requireObjectCoercible$1(this))
+        .indexOf(notARegexp(searchString), arguments.length > 1 ? arguments[1] : undefined);
+    }
+  });
+
+  function parse_str(str, array) {
+    // eslint-disable-line camelcase
+    //       discuss at: https://locutus.io/php/parse_str/
+    //      original by: Cagri Ekin
+    //      improved by: Michael White (https://getsprink.com)
+    //      improved by: Jack
+    //      improved by: Brett Zamir (https://brett-zamir.me)
+    //      bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
+    //      bugfixed by: Brett Zamir (https://brett-zamir.me)
+    //      bugfixed by: stag019
+    //      bugfixed by: Brett Zamir (https://brett-zamir.me)
+    //      bugfixed by: MIO_KODUKI (https://mio-koduki.blogspot.com/)
+    // reimplemented by: stag019
+    //         input by: Dreamer
+    //         input by: Zaide (https://zaidesthings.com/)
+    //         input by: David Pesta (https://davidpesta.com/)
+    //         input by: jeicquest
+    //      bugfixed by: Rafał Kukawski
+    //           note 1: When no argument is specified, will put variables in global scope.
+    //           note 1: When a particular argument has been passed, and the
+    //           note 1: returned value is different parse_str of PHP.
+    //           note 1: For example, a=b=c&d====c
+    //        example 1: var $arr = {}
+    //        example 1: parse_str('first=foo&second=bar', $arr)
+    //        example 1: var $result = $arr
+    //        returns 1: { first: 'foo', second: 'bar' }
+    //        example 2: var $arr = {}
+    //        example 2: parse_str('str_a=Jack+and+Jill+didn%27t+see+the+well.', $arr)
+    //        example 2: var $result = $arr
+    //        returns 2: { str_a: "Jack and Jill didn't see the well." }
+    //        example 3: var $abc = {3:'a'}
+    //        example 3: parse_str('a[b]["c"]=def&a[q]=t+5', $abc)
+    //        example 3: var $result = $abc
+    //        returns 3: {"3":"a","a":{"b":{"c":"def"},"q":"t 5"}}
+    //        example 4: var $arr = {}
+    //        example 4: parse_str('a[][]=value', $arr)
+    //        example 4: var $result = $arr
+    //        returns 4: {"a":{"0":{"0":"value"}}}
+    //        example 5: var $arr = {}
+    //        example 5: parse_str('a=1&a[]=2', $arr)
+    //        example 5: var $result = $arr
+    //        returns 5: {"a":{"0":"2"}}
+    var strArr = String(str).replace(/^&/, '').replace(/&$/, '').split('&');
+    var sal = strArr.length;
+    var i;
+    var j;
+    var ct;
+    var p;
+    var lastObj;
+    var obj;
+    var chr;
+    var tmp;
+    var key;
+    var value;
+    var postLeftBracketPos;
+    var keys;
+    var keysLen;
+
+    var _fixStr = function _fixStr(str) {
+      return decodeURIComponent(str.replace(/\+/g, '%20'));
+    };
+
+    var $global = typeof window !== 'undefined' ? window : global;
+    $global.$locutus = $global.$locutus || {};
+    var $locutus = $global.$locutus;
+    $locutus.php = $locutus.php || {};
+
+    if (!array) {
+      array = $global;
+    }
+
+    for (i = 0; i < sal; i++) {
+      tmp = strArr[i].split('=');
+      key = _fixStr(tmp[0]);
+      value = tmp.length < 2 ? '' : _fixStr(tmp[1]);
+
+      if (key.includes('__proto__') || key.includes('constructor') || key.includes('prototype')) {
+        break;
+      }
+
+      while (key.charAt(0) === ' ') {
+        key = key.slice(1);
+      }
+
+      if (key.indexOf('\x00') > -1) {
+        key = key.slice(0, key.indexOf('\x00'));
+      }
+
+      if (key && key.charAt(0) !== '[') {
+        keys = [];
+        postLeftBracketPos = 0;
+
+        for (j = 0; j < key.length; j++) {
+          if (key.charAt(j) === '[' && !postLeftBracketPos) {
+            postLeftBracketPos = j + 1;
+          } else if (key.charAt(j) === ']') {
+            if (postLeftBracketPos) {
+              if (!keys.length) {
+                keys.push(key.slice(0, postLeftBracketPos - 1));
+              }
+
+              keys.push(key.substr(postLeftBracketPos, j - postLeftBracketPos));
+              postLeftBracketPos = 0;
+
+              if (key.charAt(j + 1) !== '[') {
+                break;
+              }
+            }
+          }
+        }
+
+        if (!keys.length) {
+          keys = [key];
+        }
+
+        for (j = 0; j < keys[0].length; j++) {
+          chr = keys[0].charAt(j);
+
+          if (chr === ' ' || chr === '.' || chr === '[') {
+            keys[0] = keys[0].substr(0, j) + '_' + keys[0].substr(j + 1);
+          }
+
+          if (chr === '[') {
+            break;
+          }
+        }
+
+        obj = array;
+
+        for (j = 0, keysLen = keys.length; j < keysLen; j++) {
+          key = keys[j].replace(/^['"]/, '').replace(/['"]$/, '');
+          lastObj = obj;
+
+          if ((key === '' || key === ' ') && j !== 0) {
+            // Insert new dimension
+            ct = -1;
+
+            for (p in obj) {
+              if (obj.hasOwnProperty(p)) {
+                if (+p > ct && p.match(/^\d+$/g)) {
+                  ct = +p;
+                }
+              }
+            }
+
+            key = ct + 1;
+          } // if primitive value, replace with object
+
+
+          if (Object(obj[key]) !== obj[key]) {
+            obj[key] = {};
+          }
+
+          obj = obj[key];
+        }
+
+        lastObj[key] = value;
+      }
+    }
+  }
+
   var buildCollectedFromQuery = function buildCollectedFromQuery(query, config) {
-    var parsedQueryString = queryString.parse(query);
+    var parsedQueryString = {};
+    parse_str(query, parsedQueryString);
     return config.map(function (toCollect) {
       return {
         name: toCollect.field,

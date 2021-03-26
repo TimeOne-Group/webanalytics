@@ -1,2 +1,3 @@
 dist/*js
 dist/**/*js
+src/lib/parse_str.js

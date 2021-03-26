@@ -22,12 +22,6 @@ const plugins = [
       '@timeone-group/storage-js',
       '@lukeed/uuid',
       'jssha',
-      'query-string',
-      // query-string
-      'strict-uri-encode',
-      'decode-uri-component',
-      'split-on-first',
-      'filter-obj',
     ]),
   }),
   banner,

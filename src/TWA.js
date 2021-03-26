@@ -1,15 +1,16 @@
 import 'core-js/es/object/assign';
 import 'core-js/es/array/includes';
 import StorageJS from '@timeone-group/storage-js';
-import QueryString from 'query-string';
 import { AppError, Severity } from '@timeone-group/error-logger-js';
 import { v4 } from '@lukeed/uuid';
 import JsSHA from 'jssha';
 import Global from './Global';
 import ConsentStatus from './ConsentStatus';
+import parseQuery from './lib/parse_str';
 
 const buildCollectedFromQuery = (query, config) => {
-  const parsedQueryString = QueryString.parse(query);
+  const parsedQueryString = {};
+  parseQuery(query, parsedQueryString);
 
   return config
     .map((toCollect) => ({
