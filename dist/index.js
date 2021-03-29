@@ -4665,7 +4665,8 @@
     CONSENT_KEY: 'consent',
     SALT_KEY: 'salt',
     VISITOR_KEY: 'visitor',
-    DEFAULT_CONSENT_STATUS: 'exempt'
+    DEFAULT_CONSENT_STATUS: 'exempt',
+    COLLECT_URL: 'https://wa.timeone.io/e'
   };
 
   /*!
@@ -5198,6 +5199,7 @@
       this.config = config;
       this.consentStatus = new ConsentStatus(id);
       this.setConsentStatus(this.getConsentStatus());
+      this.env = 'prod';
     }
 
     _createClass(TWA, [{
@@ -5306,10 +5308,14 @@
               type: 'visitor'
             }));
           }
-        } // eslint-disable-next-line no-console
+        }
 
-
-        console.log(toSend, toSaveEvent);
+        if (toSend) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', this.getUrlCollect());
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify(toSaveEvent));
+        }
       }
     }, {
       key: "clearAll",
@@ -5366,6 +5372,16 @@
             throw new AppError(Severity.ERROR, 'Unknow status');
         }
       }
+    }, {
+      key: "setEnv",
+      value: function setEnv(env) {
+        this.env = env;
+      }
+    }, {
+      key: "getUrlCollect",
+      value: function getUrlCollect() {
+        return "".concat(this.env === 'dev' ? './wa' : Global.COLLECT_URL, "/").concat(this.id);
+      }
     }]);
 
     return TWA;
@@ -5399,13 +5415,18 @@
   var Track = {
     init: function init(_ref) {
       var twaId = _ref.twaId,
-          config = _ref.collect;
+          config = _ref.collect,
+          env = _ref.env;
 
       if (!twaId) {
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
       }
 
       cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config)));
+
+      if (env) {
+        cache[twaId].setEnv(env);
+      }
     },
     optin: function optin(_ref2) {
       var twaId = _ref2.twaId;

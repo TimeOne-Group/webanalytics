@@ -76,6 +76,7 @@ class TWA {
     this.config = config;
     this.consentStatus = new ConsentStatus(id);
     this.setConsentStatus(this.getConsentStatus());
+    this.env = 'prod';
   }
 
   getConfig() {
@@ -164,8 +165,12 @@ class TWA {
       }
     }
 
-    // eslint-disable-next-line no-console
-    console.log(toSend, toSaveEvent);
+    if (toSend) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', this.getUrlCollect());
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify(toSaveEvent));
+    }
   }
 
   clearAll() {
@@ -214,6 +219,14 @@ class TWA {
       default:
         throw new AppError(Severity.ERROR, 'Unknow status');
     }
+  }
+
+  setEnv(env) {
+    this.env = env;
+  }
+
+  getUrlCollect() {
+    return `${this.env === 'dev' ? './wa' : Global.COLLECT_URL}/${this.id}`;
   }
 }
 

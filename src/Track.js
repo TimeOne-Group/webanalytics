@@ -12,11 +12,14 @@ const checkIfExist = (twaId) => {
 };
 
 const Track = {
-  init: ({ twaId, collect: config }) => {
+  init: ({ twaId, collect: config, env }) => {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
     cache[twaId] = new TWA(twaId, [...defaultConfig, ...config]);
+    if (env) {
+      cache[twaId].setEnv(env);
+    }
   },
   optin: ({ twaId }) => {
     checkIfExist(twaId);

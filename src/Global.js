@@ -7,4 +7,5 @@ export default {
   SALT_KEY: 'salt',
   VISITOR_KEY: 'visitor',
   DEFAULT_CONSENT_STATUS: 'exempt',
+  COLLECT_URL: 'https://wa.timeone.io/e',
 };
