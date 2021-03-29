@@ -23,7 +23,7 @@
   "homepage": "https://github.com/TimeOne-Group/webanalytics.git#readme",
   "dependencies": {
     "@timeone-group/error-logger-js": "^0.2.3",
-    "@timeone-group/storage-js": "^0.3.0",
+    "@timeone-group/storage-js": "^0.3.1",
     "core-js": "^3.9.1",
     "js-cookie": "^2.2.1",
     "jssha": "^3.2.0"

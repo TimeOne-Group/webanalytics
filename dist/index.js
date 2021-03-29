@@ -855,68 +855,6 @@
     }
   };
 
-  // `Object.keys` method
-  // https://tc39.es/ecma262/#sec-object.keys
-  var objectKeys$1 = Object.keys || function keys(O) {
-    return objectKeysInternal$1(O, enumBugKeys$1);
-  };
-
-  // `ToObject` abstract operation
-  // https://tc39.es/ecma262/#sec-toobject
-  var toObject$1 = function (argument) {
-    return Object(requireObjectCoercible$1(argument));
-  };
-
-  var nativeAssign = Object.assign;
-  var defineProperty$2 = Object.defineProperty;
-
-  // `Object.assign` method
-  // https://tc39.es/ecma262/#sec-object.assign
-  var objectAssign = !nativeAssign || fails$1(function () {
-    // should have correct order of operations (Edge bug)
-    if (descriptors$1 && nativeAssign({ b: 1 }, nativeAssign(defineProperty$2({}, 'a', {
-      enumerable: true,
-      get: function () {
-        defineProperty$2(this, 'b', {
-          value: 3,
-          enumerable: false
-        });
-      }
-    }), { b: 2 })).b !== 1) return true;
-    // should work with symbols and should have deterministic property order (V8 bug)
-    var A = {};
-    var B = {};
-    /* global Symbol -- required for testing */
-    var symbol = Symbol();
-    var alphabet = 'abcdefghijklmnopqrst';
-    A[symbol] = 7;
-    alphabet.split('').forEach(function (chr) { B[chr] = chr; });
-    return nativeAssign({}, A)[symbol] != 7 || objectKeys$1(nativeAssign({}, B)).join('') != alphabet;
-  }) ? function assign(target, source) { // eslint-disable-line no-unused-vars -- required for `.length`
-    var T = toObject$1(target);
-    var argumentsLength = arguments.length;
-    var index = 1;
-    var getOwnPropertySymbols = objectGetOwnPropertySymbols$1.f;
-    var propertyIsEnumerable = objectPropertyIsEnumerable$1.f;
-    while (argumentsLength > index) {
-      var S = indexedObject$1(arguments[index++]);
-      var keys = getOwnPropertySymbols ? objectKeys$1(S).concat(getOwnPropertySymbols(S)) : objectKeys$1(S);
-      var length = keys.length;
-      var j = 0;
-      var key;
-      while (length > j) {
-        key = keys[j++];
-        if (!descriptors$1 || propertyIsEnumerable.call(S, key)) T[key] = S[key];
-      }
-    } return T;
-  } : nativeAssign;
-
-  // `Object.assign` method
-  // https://tc39.es/ecma262/#sec-object.assign
-  _export$1({ target: 'Object', stat: true, forced: Object.assign !== objectAssign }, {
-    assign: objectAssign
-  });
-
   var engineIsNode$1 = classofRaw$1(global$2.process) == 'process';
 
   var engineUserAgent$1 = getBuiltIn$1('navigator', 'userAgent') || '';
@@ -964,6 +902,12 @@
         WellKnownSymbolsStore$1[name] = createWellKnownSymbol$1('Symbol.' + name);
       }
     } return WellKnownSymbolsStore$1[name];
+  };
+
+  // `Object.keys` method
+  // https://tc39.es/ecma262/#sec-object.keys
+  var objectKeys$1 = Object.keys || function keys(O) {
+    return objectKeysInternal$1(O, enumBugKeys$1);
   };
 
   // `Object.defineProperties` method
@@ -3514,7 +3458,7 @@
     _createClass(Store, [{
       key: "set",
       value: function set(key, object) {
-        this.engine.setItem(key, lzString.compress(JSON.stringify(object)));
+        this.engine.setItem(key, lzString.compressToBase64(JSON.stringify(object)));
       }
     }, {
       key: "get",
@@ -3523,7 +3467,7 @@
 
         if (value) {
           try {
-            return JSON.parse(lzString.decompress(value));
+            return JSON.parse(lzString.decompressFromBase64(value));
           } catch (e) {
             Logger.catchError(e);
             return null;
@@ -4719,7 +4663,9 @@
     CONSENT_STORAGE_DEFAULT_TTL: 180,
     // 6 months
     CONSENT_KEY: 'consent',
-    SALT_KEY: 'salt'
+    SALT_KEY: 'salt',
+    VISITOR_KEY: 'visitor',
+    DEFAULT_CONSENT_STATUS: 'exempt'
   };
 
   /*!
@@ -5240,6 +5186,10 @@
     return newEvent;
   };
 
+  var getAllDatas = function getAllDatas(store) {
+    return store.findAll();
+  };
+
   var TWA = /*#__PURE__*/function () {
     function TWA(id, config) {
       _classCallCheck(this, TWA);
@@ -5264,7 +5214,7 @@
     }, {
       key: "getConsentStatus",
       value: function getConsentStatus() {
-        return this.consentStatus.get() || 'exempt';
+        return this.consentStatus.get() || Global.DEFAULT_CONSENT_STATUS;
       }
     }, {
       key: "getSalt",
@@ -5297,7 +5247,7 @@
     }, {
       key: "buildAnonymiseEvent",
       value: function buildAnonymiseEvent(event) {
-        var anonymiseEvent = Object.assign(event, {});
+        var anonymiseEvent = _objectSpread2({}, event);
 
         if (event.type === 'lead' || event.type === 'sale') {
           var convId;
@@ -5320,7 +5270,7 @@
     }, {
       key: "buildEventWithGlobalData",
       value: function buildEventWithGlobalData(event) {
-        return Object.assign(event, this.buildTrace(window.location.search), {
+        return _objectSpread2(_objectSpread2(_objectSpread2({}, event), this.buildTrace(window.location.search)), {}, {
           page: buildAnonymusPageFromLocation(window.location),
           referer: buildAnonymusReferer(window.document.referrer),
           time: new Date().getTime(),
@@ -5330,24 +5280,49 @@
     }, {
       key: "pushEvent",
       value: function pushEvent(event) {
-        var toSaveEvent = this.buildEventWithGlobalData(this.buildAnonymiseEvent(buildEvent(event))); // eslint-disable-next-line no-console
+        var toSaveEvent = this.buildEventWithGlobalData(this.buildAnonymiseEvent(buildEvent(event)));
+        var toSend = true;
 
-        console.log(toSaveEvent);
-      }
-    }, {
-      key: "getAllDatas",
-      value: function getAllDatas() {
-        return this.store.findAll();
+        if (toSaveEvent.conv_id) {
+          var storedEvent = this.store.find(toSaveEvent.conv_id);
+
+          if (storedEvent.id) {
+            toSend = false;
+          } else {
+            this.store.save({
+              id: toSaveEvent.conv_id
+            });
+          }
+        }
+
+        if (toSaveEvent.type === 'pageview') {
+          var visitorSessionEvent = this.storeSession.find(Global.VISITOR_KEY);
+
+          if (!visitorSessionEvent.id) {
+            this.storeSession.save({
+              id: Global.VISITOR_KEY
+            });
+            this.pushEvent(_objectSpread2(_objectSpread2({}, toSaveEvent), {}, {
+              type: 'visitor'
+            }));
+          }
+        } // eslint-disable-next-line no-console
+
+
+        console.log(toSend, toSaveEvent);
       }
     }, {
       key: "clearAll",
       value: function clearAll() {
         var _this = this;
 
-        var events = this.getAllDatas();
-        events.forEach(function (event) {
+        getAllDatas(this.store).forEach(function (event) {
           return _this.store.delete(event.id);
         });
+        getAllDatas(this.storeSession).forEach(function (event) {
+          return _this.storeSession.delete(event.id);
+        });
+        this.setConsentStatus(Global.DEFAULT_CONSENT_STATUS);
       }
     }, {
       key: "buildTrace",
@@ -5511,23 +5486,15 @@
       key: "push",
       value: // eslint-disable-next-line class-methods-use-this
       function push(args) {
-        var result;
+        var _args = _toArray(args),
+            functionName = _args[0],
+            functionArgs = _args.slice(1);
 
-        try {
-          var _args = _toArray(args),
-              functionName = _args[0],
-              functionArgs = _args.slice(1);
-
-          if (typeof Track[functionName] !== 'function') {
-            throw new AppError(Severity.ERROR, "Undefined function ".concat(functionName));
-          }
-
-          result = Track[functionName].apply(null, functionArgs);
-        } catch (e) {
-          Logger.catchError(e);
+        if (typeof Track[functionName] !== 'function') {
+          throw new AppError(Severity.ERROR, "Undefined function ".concat(functionName));
         }
 
-        return result;
+        return Track[functionName].apply(null, functionArgs);
       }
     }]);
 

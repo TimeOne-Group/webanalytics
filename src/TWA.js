@@ -1,4 +1,3 @@
-import 'core-js/es/object/assign';
 import 'core-js/es/array/includes';
 import StorageJS from '@timeone-group/storage-js';
 import { AppError, Severity } from '@timeone-group/error-logger-js';
@@ -69,6 +68,8 @@ const buildEvent = (event) => {
   return newEvent;
 };
 
+const getAllDatas = (store) => store.findAll();
+
 class TWA {
   constructor(id, config) {
     this.id = id;
@@ -87,7 +88,7 @@ class TWA {
   }
 
   getConsentStatus() {
-    return this.consentStatus.get() || 'exempt';
+    return this.consentStatus.get() || Global.DEFAULT_CONSENT_STATUS;
   }
 
   getSalt() {
@@ -111,7 +112,7 @@ class TWA {
   }
 
   buildAnonymiseEvent(event) {
-    const anonymiseEvent = Object.assign(event, {});
+    const anonymiseEvent = { ...event };
 
     if (event.type === 'lead' || event.type === 'sale') {
       let convId;
@@ -129,29 +130,50 @@ class TWA {
   }
 
   buildEventWithGlobalData(event) {
-    return Object.assign(event, this.buildTrace(window.location.search), {
+    return {
+      ...event,
+      ...this.buildTrace(window.location.search),
       page: buildAnonymusPageFromLocation(window.location),
       referer: buildAnonymusReferer(window.document.referrer),
       time: new Date().getTime(),
       status: this.getConsentStatus(),
-    });
+    };
   }
 
   pushEvent(event) {
     const toSaveEvent = this.buildEventWithGlobalData(
       this.buildAnonymiseEvent(buildEvent(event))
     );
-    // eslint-disable-next-line no-console
-    console.log(toSaveEvent);
-  }
 
-  getAllDatas() {
-    return this.store.findAll();
+    let toSend = true;
+
+    if (toSaveEvent.conv_id) {
+      const storedEvent = this.store.find(toSaveEvent.conv_id);
+      if (storedEvent.id) {
+        toSend = false;
+      } else {
+        this.store.save({ id: toSaveEvent.conv_id });
+      }
+    }
+
+    if (toSaveEvent.type === 'pageview') {
+      const visitorSessionEvent = this.storeSession.find(Global.VISITOR_KEY);
+      if (!visitorSessionEvent.id) {
+        this.storeSession.save({ id: Global.VISITOR_KEY });
+        this.pushEvent({ ...toSaveEvent, type: 'visitor' });
+      }
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(toSend, toSaveEvent);
   }
 
   clearAll() {
-    const events = this.getAllDatas();
-    events.forEach((event) => this.store.delete(event.id));
+    getAllDatas(this.store).forEach((event) => this.store.delete(event.id));
+    getAllDatas(this.storeSession).forEach((event) =>
+      this.storeSession.delete(event.id)
+    );
+    this.setConsentStatus(Global.DEFAULT_CONSENT_STATUS);
   }
 
   buildTrace(query) {
