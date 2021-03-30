@@ -1,9 +1,9 @@
-/* eslint-disable no-console */
 import { AppError, Severity } from '@timeone-group/error-logger-js';
 import TWA from './TWA';
 import defaultConfig from './defaultConfig';
 
 const cache = {};
+const debugConf = {};
 
 const checkIfExist = (twaId) => {
   if (!cache[twaId]) {
@@ -11,14 +11,30 @@ const checkIfExist = (twaId) => {
   }
 };
 
+const showDebug = (debug, object) => {
+  if (debug && debug.active) {
+    document.getElementById(debug.element).value = JSON.stringify(
+      object,
+      null,
+      2
+    );
+  }
+};
+
 const Track = {
-  init: ({ twaId, collect: config, env }) => {
+  init: ({ twaId, collect: config, env, debug }) => {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
     cache[twaId] = new TWA(twaId, [...defaultConfig, ...config]);
     if (env) {
       cache[twaId].setEnv(env);
+    }
+    if (debug && debug.active) {
+      debugConf[twaId] = {
+        active: true,
+        element: debug.element || 'debug',
+      };
     }
   },
   optin: ({ twaId }) => {
@@ -35,15 +51,15 @@ const Track = {
   },
   showConfig: ({ twaId }) => {
     checkIfExist(twaId);
-    console.log(cache[twaId].getConfig());
+    showDebug(debugConf[twaId], cache[twaId].getConfig());
   },
   showTrace: ({ twaId }) => {
     checkIfExist(twaId);
-    console.log(cache[twaId].getSavedTrace());
+    showDebug(debugConf[twaId], cache[twaId].getSavedTrace());
   },
   showConsentStatus: ({ twaId }) => {
     checkIfExist(twaId);
-    console.log(cache[twaId].getConsentStatus());
+    showDebug(debugConf[twaId], cache[twaId].getConsentStatus());
   },
   clearAll: ({ twaId }) => {
     checkIfExist(twaId);
@@ -51,21 +67,27 @@ const Track = {
   },
   pageview: ({ twaId }) => {
     checkIfExist(twaId);
-    cache[twaId].pushEvent({ type: 'pageview' });
+    showDebug(debugConf[twaId], cache[twaId].pushEvent({ type: 'pageview' }));
   },
   lead: ({ twaId, convId, convDatas }) => {
     checkIfExist(twaId);
-    cache[twaId].pushEvent({ type: 'lead', convId, convDatas });
+    showDebug(
+      debugConf[twaId],
+      cache[twaId].pushEvent({ type: 'lead', convId, convDatas })
+    );
   },
   sale: ({ twaId, convId, convDatas, convTurnover, convCurrency }) => {
     checkIfExist(twaId);
-    cache[twaId].pushEvent({
-      type: 'sale',
-      convId,
-      convDatas,
-      convTurnover,
-      convCurrency,
-    });
+    showDebug(
+      debugConf[twaId],
+      cache[twaId].pushEvent({
+        type: 'sale',
+        convId,
+        convDatas,
+        convTurnover,
+        convCurrency,
+      })
+    );
   },
 };
 

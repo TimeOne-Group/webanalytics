@@ -170,7 +170,9 @@ class TWA {
       xhr.open('POST', this.getUrlCollect());
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify(toSaveEvent));
+      return toSaveEvent;
     }
+    return {};
   }
 
   clearAll() {

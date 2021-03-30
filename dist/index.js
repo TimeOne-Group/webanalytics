@@ -5315,7 +5315,10 @@
           xhr.open('POST', this.getUrlCollect());
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(JSON.stringify(toSaveEvent));
+          return toSaveEvent;
         }
+
+        return {};
       }
     }, {
       key: "clearAll",
@@ -5405,6 +5408,7 @@
   }];
 
   var cache = {};
+  var debugConf = {};
 
   var checkIfExist = function checkIfExist(twaId) {
     if (!cache[twaId]) {
@@ -5412,11 +5416,18 @@
     }
   };
 
+  var showDebug = function showDebug(debug, object) {
+    if (debug && debug.active) {
+      document.getElementById(debug.element).value = JSON.stringify(object, null, 2);
+    }
+  };
+
   var Track = {
     init: function init(_ref) {
       var twaId = _ref.twaId,
           config = _ref.collect,
-          env = _ref.env;
+          env = _ref.env,
+          debug = _ref.debug;
 
       if (!twaId) {
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
@@ -5426,6 +5437,13 @@
 
       if (env) {
         cache[twaId].setEnv(env);
+      }
+
+      if (debug && debug.active) {
+        debugConf[twaId] = {
+          active: true,
+          element: debug.element || 'debug'
+        };
       }
     },
     optin: function optin(_ref2) {
@@ -5446,17 +5464,17 @@
     showConfig: function showConfig(_ref5) {
       var twaId = _ref5.twaId;
       checkIfExist(twaId);
-      console.log(cache[twaId].getConfig());
+      showDebug(debugConf[twaId], cache[twaId].getConfig());
     },
     showTrace: function showTrace(_ref6) {
       var twaId = _ref6.twaId;
       checkIfExist(twaId);
-      console.log(cache[twaId].getSavedTrace());
+      showDebug(debugConf[twaId], cache[twaId].getSavedTrace());
     },
     showConsentStatus: function showConsentStatus(_ref7) {
       var twaId = _ref7.twaId;
       checkIfExist(twaId);
-      console.log(cache[twaId].getConsentStatus());
+      showDebug(debugConf[twaId], cache[twaId].getConsentStatus());
     },
     clearAll: function clearAll(_ref8) {
       var twaId = _ref8.twaId;
@@ -5466,20 +5484,20 @@
     pageview: function pageview(_ref9) {
       var twaId = _ref9.twaId;
       checkIfExist(twaId);
-      cache[twaId].pushEvent({
+      showDebug(debugConf[twaId], cache[twaId].pushEvent({
         type: 'pageview'
-      });
+      }));
     },
     lead: function lead(_ref10) {
       var twaId = _ref10.twaId,
           convId = _ref10.convId,
           convDatas = _ref10.convDatas;
       checkIfExist(twaId);
-      cache[twaId].pushEvent({
+      showDebug(debugConf[twaId], cache[twaId].pushEvent({
         type: 'lead',
         convId: convId,
         convDatas: convDatas
-      });
+      }));
     },
     sale: function sale(_ref11) {
       var twaId = _ref11.twaId,
@@ -5488,13 +5506,13 @@
           convTurnover = _ref11.convTurnover,
           convCurrency = _ref11.convCurrency;
       checkIfExist(twaId);
-      cache[twaId].pushEvent({
+      showDebug(debugConf[twaId], cache[twaId].pushEvent({
         type: 'sale',
         convId: convId,
         convDatas: convDatas,
         convTurnover: convTurnover,
         convCurrency: convCurrency
-      });
+      }));
     }
   };
 
