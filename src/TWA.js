@@ -146,6 +146,7 @@ class TWA {
       this.buildAnonymiseEvent(buildEvent(event))
     );
 
+    const toReturn = [];
     let toSend = true;
 
     if (toSaveEvent.conv_id) {
@@ -161,7 +162,9 @@ class TWA {
       const visitorSessionEvent = this.storeSession.find(Global.VISITOR_KEY);
       if (!visitorSessionEvent.id) {
         this.storeSession.save({ id: Global.VISITOR_KEY });
-        this.pushEvent({ ...toSaveEvent, type: 'visitor' });
+        toReturn.push(
+          this.pushEvent({ ...toSaveEvent, type: 'visitor' }).shift()
+        );
       }
     }
 
@@ -170,9 +173,9 @@ class TWA {
       xhr.open('POST', this.getUrlCollect());
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify(toSaveEvent));
-      return toSaveEvent;
+      toReturn.push(toSaveEvent);
     }
-    return {};
+    return toReturn;
   }
 
   clearAll() {

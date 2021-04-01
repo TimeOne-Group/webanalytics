@@ -5283,6 +5283,7 @@
       key: "pushEvent",
       value: function pushEvent(event) {
         var toSaveEvent = this.buildEventWithGlobalData(this.buildAnonymiseEvent(buildEvent(event)));
+        var toReturn = [];
         var toSend = true;
 
         if (toSaveEvent.conv_id) {
@@ -5304,9 +5305,9 @@
             this.storeSession.save({
               id: Global.VISITOR_KEY
             });
-            this.pushEvent(_objectSpread2(_objectSpread2({}, toSaveEvent), {}, {
+            toReturn.push(this.pushEvent(_objectSpread2(_objectSpread2({}, toSaveEvent), {}, {
               type: 'visitor'
-            }));
+            })).shift());
           }
         }
 
@@ -5315,10 +5316,10 @@
           xhr.open('POST', this.getUrlCollect());
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(JSON.stringify(toSaveEvent));
-          return toSaveEvent;
+          toReturn.push(toSaveEvent);
         }
 
-        return {};
+        return toReturn;
       }
     }, {
       key: "clearAll",
