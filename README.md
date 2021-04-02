@@ -38,7 +38,7 @@ Exemple d'intégration :
 ### Configuration du traceur
 
 Le traceur utilise une configuration par défaut qui est la suivante :
-```json
+```javascript
 [
   {
     field: 'source',
@@ -74,7 +74,7 @@ Cette configuration permet au traceur d'identifier les paramètres GET à utilis
 Si vos paramètres de source correspondent à cette configuration par défaut, il n'est donc pas nécessaire de la définir lors de l'initialisation du traceur.
 
 Dans les autres cas, vous pouvez préciser les correspondances, en utilisant la structure suivante :
-```json
+```javascript
 {
     field: '<champ du traceur à paramétrer>',
     param: '<nom du paramètre GET dans l'URL d'arrivée>',
