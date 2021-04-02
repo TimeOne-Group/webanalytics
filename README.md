@@ -69,7 +69,7 @@ Cette configuration permet au traceur d'identifier les paramètres GET à utilis
 - `source_campaign` : nom de la campagne
 - `source_content` : type de contenu cliqué
 - `source_term` : termes de recherche
-- `source_sub` : sous origine du trafic
+- `source_sub` : sous origine du trafic (non paramétré par défaut)
 
 Si vos paramètres de source correspondent à cette configuration par défaut, il n'est donc pas nécessaire de la définir lors de l'initialisation du traceur.
 
@@ -77,7 +77,7 @@ Dans les autres cas, vous pouvez préciser les correspondances, en utilisant la 
 ```javascript
 {
     field: '<champ du traceur à paramétrer>',
-    param: '<nom du paramètre GET dans l'URL d'arrivée>',
+    param: '<nom du paramètre GET dans l\'URL d\'arrivée>',
 }
 ```
 
@@ -153,16 +153,39 @@ TWA.push([
 ]);
 ```
 
-### À noter - identifiant de conversion anonyme
+#### Données supplémentaires lors de la conversion
+
+Il est possible, pour un usage spécifique, de renseigner des données supplémentaires lors de l'enregistrement d'une conversion (`lead` ou `sale`) dans le champ `convDatas`.
+
+Vous pouvez fournir un objet avec plusieurs variables pour un suivi complet.
+
+```javascript
+TWA.push([
+    'sale',
+    {
+        twaId: <votre ID>,
+        convId: '<ID unique de la commande>',
+        convTurnover: <montant de la commande hors taxe et livraison - 0.00>,
+        convCurrency: '<code ISO devise>',
+        convDatas: {
+            '<nom de ma data supplémentaire>': '<valeur de ma data supplémentaire>',
+        },
+    }
+]);
+```
+
+**Attention :** vous ne devez en aucun cas transmettre de la donnée personnelle dans cette variable.
+
+### À noter - concernant l'identifiant de conversion anonyme
 
 L'identifiant de la conversion n'est pas envoyé en clair au système de collecte de TimeOne.
 Une [fonction de hachage](https://fr.wikipedia.org/wiki/Fonction_de_hachage) avec clé de salage aléatoire par session et algorithme en [SHA-256](https://fr.wikipedia.org/wiki/SHA-2#SHA-256) est utilisée pour anonymiser cet identifiant directement sur le navigateur de l'internaute.
 
 ### Notifier le changement de consentement
 
-Le traceur WebAnalytics By TimeOne ne doit pas être conditionné au consentement de l'internaute (étant exemppté de consentement).
+Le traceur WebAnalytics By TimeOne ne doit pas être conditionné au consentement de l'internaute (étant exempté de consentement).
 
-En revanche, vous signaler au traceur le choix de l'internaute sur la finalité "Mesure d'audience", le traceur est camapgne de recevoir un signal pour mettre à jour l'information de consentement.
+En revanche, vous devez signaler au traceur le choix de l'internaute sur la finalité "Mesure d'audience". Le traceur est capable de recevoir une mise à jour de l'information de consentement.
 
 #### Mode exempté (par défaut)
 
@@ -224,8 +247,8 @@ Voici la liste complète des données collectées par le traceur WebAnalytics By
 * Conversion :
   * ID unique (empreinte SHA-256 avec clé de salage aléatoire par session de l'identifiant de conversion du client)
   * Montant HT
-  * Currency
-  * Data (donnée anonyme de suivi de la conversion = formule / type / etc …)
+  * Devise
+  * Data (donnée personnalisée et anonyme de suivi de la conversion)
 * Consentement  :
   * Statut : opt-in / exempt / opt-out
 
