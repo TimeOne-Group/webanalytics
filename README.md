@@ -252,10 +252,6 @@ Voici la liste complète des données collectées par le traceur WebAnalytics By
 * Consentement  :
   * Statut : opt-in / exempt / opt-out
 
-## Developper sur le projet
+## Participer au projet
 
-```
-docker-compose up build web
-```
-
-http://localhost:8080/test
+Si vous souhaitez participer au développement du projet et apporter votre contribution, c'est [ici](doc/develop.md).
