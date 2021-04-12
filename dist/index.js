@@ -1,5 +1,5 @@
 
-/*! @timeone-group/webanalytics 0.1.0 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
+/*! @timeone-group/webanalytics 1.0.0 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
 (function () {
   'use strict';
 
