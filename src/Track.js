@@ -26,7 +26,7 @@ const Track = {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
-    cache[twaId] = new TWA(twaId, [...defaultConfig, ...config]);
+    cache[twaId] = new TWA(twaId, [...defaultConfig, ...(config || [])]);
     if (env) {
       cache[twaId].setEnv(env);
     }
