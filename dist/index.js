@@ -1,5 +1,5 @@
 
-/*! @timeone-group/webanalytics 1.0.2 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
+/*! @timeone-group/webanalytics 1.0.3 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
 (function () {
   'use strict';
 
@@ -5434,7 +5434,7 @@
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
       }
 
-      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config)));
+      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config || [])));
 
       if (env) {
         cache[twaId].setEnv(env);
@@ -5558,7 +5558,6 @@
     }
   } catch (e) {
     Logger.catchError(e, 'TWA - Tracker');
-    console.log(e.stack);
   }
 
 }());
