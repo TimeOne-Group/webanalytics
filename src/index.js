@@ -23,4 +23,5 @@ try {
   }
 } catch (e) {
   Logger.catchError(e, 'TWA - Tracker');
+  console.log(e.stack);
 }
