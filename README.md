@@ -189,7 +189,7 @@ En revanche, vous devez signaler au traceur le choix de l'internaute sur la fina
 
 #### Mode exempté (par défaut)
 
-Ce mode est celui activé par défaut. Vous n'avez pas besoin de le déclarer explicitement.
+Ce mode est celui activé par défaut. Vous n'avez pas besoin de le définir lors de l'appel du tag.
 
 En tout état de cause, il est modifiable par cet appel :
 ```javascript
