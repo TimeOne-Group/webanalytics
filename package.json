@@ -1,6 +1,6 @@
 {
   "name": "@timeone-group/webanalytics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web Analytics By TimeOne - Tracker",
   "main": "src/index.js",
   "scripts": {
