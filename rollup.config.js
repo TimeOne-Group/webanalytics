@@ -17,16 +17,9 @@ const plugins = [
   babel({
     babelHelpers: 'bundled',
     exclude: babelLoaderExcludeNodeModulesExcept([
-      'pako',
       '@timeone-group/error-logger-js',
       '@timeone-group/storage-js',
-      'query-string',
-      '@lukeed/uuid',
-      // query-string
-      'strict-uri-encode',
-      'decode-uri-component',
-      'split-on-first',
-      'filter-obj',
+      'jssha',
     ]),
   }),
   banner,

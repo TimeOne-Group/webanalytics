@@ -11,3 +11,5 @@ yarn-error.log*
 .remote-sync.json
 .vscode/*
 !.vscode/settings_default.json
+
+.env

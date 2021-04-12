@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Web Analytics By TimeOne - Tracker</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="favicon.svg" />
+    <script defer="defer" src="../index.js"></script>
+    <script src="debug.js"></script>
+  </head>
+  <body>
+    <script>
+      window.TWA = window.TWA || [];
+      TWA.push([
+        'init',
+        {
+          twaId: 1,
+          collect: [
+            {
+              field: 'source_sub',
+              param: 'sub_source',
+            },
+            {
+              field: 'source_medium',
+              param: 'm',
+            },
+          ],
+          env: 'dev',
+          debug: {
+            active: true,
+          },
+        },
+      ]);
+      TWA.push([
+        'lead',
+        {
+          twaId: 1,
+          convId: 'email@test.com',
+          convDatas: {
+            myData: 'anonymus',
+          },
+        },
+      ]);
+    </script>
+    <h1>Lead</h1>
+    <h2>Menu</h2>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="page.html">Page</a></li>
+      <li><a href="sale.html">Sale</a></li>
+    </ul>
+    <h2>Debug</h2>
+    <ul>
+      <li><a href="#" onclick="showConfig(1)">Show config</a></li>
+      <li><a href="#" onclick="showTrace(1)">Show trace</a></li>
+      <li>
+        <a href="#" onclick="showConsentStatus(1)">Show consent status</a>
+      </li>
+      <li><a href="#" onclick="optin(1)">Set opt-in</a></li>
+      <li><a href="#" onclick="optout(1)">Set opt-out</a></li>
+      <li><a href="#" onclick="exempt(1)">Set exempt</a></li>
+      <li><a href="#" onclick="clearAll(1)">Clear</a></li>
+    </ul>
+    <textarea id="debug" rows="20" cols="150"></textarea>
+  </body>
+</html>
