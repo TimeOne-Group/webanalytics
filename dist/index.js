@@ -1,5 +1,5 @@
 
-/*! @timeone-group/webanalytics 1.0.1 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
+/*! @timeone-group/webanalytics 1.0.2 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
 (function () {
   'use strict';
 
@@ -5558,6 +5558,7 @@
     }
   } catch (e) {
     Logger.catchError(e, 'TWA - Tracker');
+    console.log(e.stack);
   }
 
 }());
