@@ -133,7 +133,7 @@ class TWA {
   buildEventWithGlobalData(event) {
     return {
       ...event,
-      ...this.buildTrace(window.location.search),
+      ...this.buildTrace(window.location.search.substr(1)),
       page: buildAnonymusPageFromLocation(window.location),
       referer: buildAnonymusReferer(window.document.referrer),
       time: new Date().getTime(),
