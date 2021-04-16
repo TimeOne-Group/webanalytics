@@ -31,6 +31,7 @@ const runTest = async (t, capabilities, referer) => {
         type: 'visitor',
         page: 'http://web/test/',
         referer,
+        source: 'timeone',
         source_medium: 'test-selenium',
         source_sub: '2',
         status: 'exempt',
@@ -39,6 +40,7 @@ const runTest = async (t, capabilities, referer) => {
         type: 'pageview',
         page: 'http://web/test/',
         referer,
+        source: 'timeone',
         source_medium: 'test-selenium',
         source_sub: '2',
         status: 'exempt',
@@ -59,6 +61,7 @@ const runTest = async (t, capabilities, referer) => {
         type: 'pageview',
         page: 'http://web/test/page.html',
         referer: 'http://web/test/',
+        source: 'timeone',
         source_medium: 'test-selenium',
         source_sub: '2',
         status: 'exempt',
@@ -80,6 +83,7 @@ const runTest = async (t, capabilities, referer) => {
         type: 'lead',
         page: 'http://web/test/lead.html',
         referer: 'http://web/test/page.html',
+        source: 'timeone',
         source_medium: 'test-selenium',
         source_sub: '2',
         status: 'exempt',
@@ -104,6 +108,7 @@ const runTest = async (t, capabilities, referer) => {
         type: 'sale',
         page: 'http://web/test/sale.html',
         referer: 'http://web/test/lead.html',
+        source: 'timeone',
         source_medium: 'test-selenium',
         source_sub: '2',
         status: 'exempt',
@@ -134,10 +139,6 @@ const runTest = async (t, capabilities, referer) => {
         param: 'utm_source',
       },
       {
-        field: 'source_medium',
-        param: 'utm_medium',
-      },
-      {
         field: 'source_campaign',
         param: 'utm_campaign',
       },
@@ -163,6 +164,7 @@ const runTest = async (t, capabilities, referer) => {
   t.deepEqual(
     JSON.parse(await driver.findElement(By.id('debug')).getAttribute('value')),
     {
+      source: 'timeone',
       source_sub: '2',
       source_medium: 'test-selenium',
     }

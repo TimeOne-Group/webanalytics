@@ -5,6 +5,19 @@ import defaultConfig from './defaultConfig';
 const cache = {};
 const debugConf = {};
 
+const buildFinalConfig = (config) => {
+  if (!config) {
+    return defaultConfig;
+  }
+
+  const filteredDefaultConfig = defaultConfig.filter(
+    (conf) =>
+      config.filter((newConf) => newConf.field === conf.field).length === 0
+  );
+
+  return [...filteredDefaultConfig, ...config];
+};
+
 const checkIfExist = (twaId) => {
   if (!cache[twaId]) {
     throw new AppError(Severity.ERROR, `twaId ${twaId} not configured`);
@@ -26,7 +39,7 @@ const Track = {
     if (!twaId) {
       throw new AppError(Severity.ERROR, 'Config must contain twaId');
     }
-    cache[twaId] = new TWA(twaId, [...defaultConfig, ...(config || [])]);
+    cache[twaId] = new TWA(twaId, buildFinalConfig(config));
     if (env) {
       cache[twaId].setEnv(env);
     }

@@ -1,5 +1,5 @@
 
-/*! @timeone-group/webanalytics 1.0.3 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
+/*! @timeone-group/webanalytics 1.0.4 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
 (function () {
   'use strict';
 
@@ -5272,7 +5272,7 @@
     }, {
       key: "buildEventWithGlobalData",
       value: function buildEventWithGlobalData(event) {
-        return _objectSpread2(_objectSpread2(_objectSpread2({}, event), this.buildTrace(window.location.search)), {}, {
+        return _objectSpread2(_objectSpread2(_objectSpread2({}, event), this.buildTrace(window.location.search.substr(1))), {}, {
           page: buildAnonymusPageFromLocation(window.location),
           referer: buildAnonymusReferer(window.document.referrer),
           time: new Date().getTime(),
@@ -5411,6 +5411,19 @@
   var cache = {};
   var debugConf = {};
 
+  var buildFinalConfig = function buildFinalConfig(config) {
+    if (!config) {
+      return defaultConfig;
+    }
+
+    var filteredDefaultConfig = defaultConfig.filter(function (conf) {
+      return config.filter(function (newConf) {
+        return newConf.field === conf.field;
+      }).length === 0;
+    });
+    return [].concat(_toConsumableArray(filteredDefaultConfig), _toConsumableArray(config));
+  };
+
   var checkIfExist = function checkIfExist(twaId) {
     if (!cache[twaId]) {
       throw new AppError(Severity.ERROR, "twaId ".concat(twaId, " not configured"));
@@ -5434,7 +5447,7 @@
         throw new AppError(Severity.ERROR, 'Config must contain twaId');
       }
 
-      cache[twaId] = new TWA(twaId, [].concat(_toConsumableArray(defaultConfig), _toConsumableArray(config || [])));
+      cache[twaId] = new TWA(twaId, buildFinalConfig(config));
 
       if (env) {
         cache[twaId].setEnv(env);
