@@ -13,7 +13,7 @@
 
 Dans la balise `<head></head>`
 ```html
-<script defer="defer" src="https://cdn.jsdelivr.net/gh/TimeOne-Group/webanalytics/dist/index.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/gh/TimeOne-Group/webanalytics/dist/index.min.js"></script>
 ```
 
 ## Comptabiliser une page vue

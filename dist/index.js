@@ -1,5 +1,5 @@
 
-/*! @timeone-group/webanalytics 1.0.4 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
+/*! @timeone-group/webanalytics 1.0.5 https://github.com/https://github.com/TimeOne-Group/webanalytics.git#readme @license GPL-3.0 */
 (function () {
   'use strict';
 
@@ -5432,6 +5432,12 @@
 
   var showDebug = function showDebug(debug, object) {
     if (debug && debug.active) {
+      if (!document.getElementById(debug.element)) {
+        setTimeout(function () {
+          return showDebug(debug, object);
+        }, 300);
+      }
+
       document.getElementById(debug.element).value = JSON.stringify(object, null, 2);
     }
   };
