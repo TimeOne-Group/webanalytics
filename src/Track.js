@@ -26,6 +26,9 @@ const checkIfExist = (twaId) => {
 
 const showDebug = (debug, object) => {
   if (debug && debug.active) {
+    if (!document.getElementById(debug.element)) {
+      setTimeout(() => showDebug(debug, object), 300);
+    }
     document.getElementById(debug.element).value = JSON.stringify(
       object,
       null,

@@ -15,13 +15,21 @@ const runTest = async (t, capabilities, referer) => {
       browserName: capabilities.browserName || capabilities.browser,
     })
     .build();
+
+  const getDebugValue = async () => {
+    let value = '';
+    while (value === '') {
+      // eslint-disable-next-line no-await-in-loop
+      value = await driver.findElement(By.id('debug')).getAttribute('value');
+    }
+    return value;
+  };
+
   await driver.get(
     'http://web/test/?utm_source=timeone&sub_source=2&m=test-selenium'
   );
   t.deepEqual(
-    JSON.parse(
-      await driver.findElement(By.id('debug')).getAttribute('value')
-    ).map((log) => {
+    JSON.parse(await getDebugValue()).map((log) => {
       const logWithoutTime = { ...log };
       delete logWithoutTime.time;
       return logWithoutTime;
@@ -49,9 +57,7 @@ const runTest = async (t, capabilities, referer) => {
   );
   await driver.findElement(By.linkText('Page')).click();
   t.deepEqual(
-    JSON.parse(
-      await driver.findElement(By.id('debug')).getAttribute('value')
-    ).map((log) => {
+    JSON.parse(await getDebugValue()).map((log) => {
       const logWithoutTime = { ...log };
       delete logWithoutTime.time;
       return logWithoutTime;
@@ -70,9 +76,7 @@ const runTest = async (t, capabilities, referer) => {
   );
   await driver.findElement(By.linkText('Lead')).click();
   t.deepEqual(
-    JSON.parse(
-      await driver.findElement(By.id('debug')).getAttribute('value')
-    ).map((log) => {
+    JSON.parse(await getDebugValue()).map((log) => {
       const logWithoutTime = { ...log };
       delete logWithoutTime.time;
       delete logWithoutTime.conv_id;
@@ -95,9 +99,7 @@ const runTest = async (t, capabilities, referer) => {
   );
   await driver.findElement(By.linkText('Sale')).click();
   t.deepEqual(
-    JSON.parse(
-      await driver.findElement(By.id('debug')).getAttribute('value')
-    ).map((log) => {
+    JSON.parse(await getDebugValue()).map((log) => {
       const logWithoutTime = { ...log };
       delete logWithoutTime.time;
       delete logWithoutTime.conv_id;
@@ -121,54 +123,42 @@ const runTest = async (t, capabilities, referer) => {
     ]
   );
   await driver.findElement(By.linkText('Lead')).click();
-  t.deepEqual(
-    JSON.parse(await driver.findElement(By.id('debug')).getAttribute('value')),
-    []
-  );
+  t.deepEqual(JSON.parse(await getDebugValue()), []);
   await driver.findElement(By.linkText('Sale')).click();
-  t.deepEqual(
-    JSON.parse(await driver.findElement(By.id('debug')).getAttribute('value')),
-    []
-  );
+  t.deepEqual(JSON.parse(await getDebugValue()), []);
   await driver.findElement(By.linkText('Show config')).click();
-  t.deepEqual(
-    JSON.parse(await driver.findElement(By.id('debug')).getAttribute('value')),
-    [
-      {
-        field: 'source',
-        param: 'utm_source',
-      },
-      {
-        field: 'source_campaign',
-        param: 'utm_campaign',
-      },
-      {
-        field: 'source_content',
-        param: 'utm_content',
-      },
-      {
-        field: 'source_term',
-        param: 'utm_term',
-      },
-      {
-        field: 'source_sub',
-        param: 'sub_source',
-      },
-      {
-        field: 'source_medium',
-        param: 'm',
-      },
-    ]
-  );
-  await driver.findElement(By.linkText('Show trace')).click();
-  t.deepEqual(
-    JSON.parse(await driver.findElement(By.id('debug')).getAttribute('value')),
+  t.deepEqual(JSON.parse(await getDebugValue()), [
     {
-      source: 'timeone',
-      source_sub: '2',
-      source_medium: 'test-selenium',
-    }
-  );
+      field: 'source',
+      param: 'utm_source',
+    },
+    {
+      field: 'source_campaign',
+      param: 'utm_campaign',
+    },
+    {
+      field: 'source_content',
+      param: 'utm_content',
+    },
+    {
+      field: 'source_term',
+      param: 'utm_term',
+    },
+    {
+      field: 'source_sub',
+      param: 'sub_source',
+    },
+    {
+      field: 'source_medium',
+      param: 'm',
+    },
+  ]);
+  await driver.findElement(By.linkText('Show trace')).click();
+  t.deepEqual(JSON.parse(await getDebugValue()), {
+    source: 'timeone',
+    source_sub: '2',
+    source_medium: 'test-selenium',
+  });
   await driver.quit();
 };
 

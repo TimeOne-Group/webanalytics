@@ -22,9 +22,10 @@ WebAnalytics By TimeOne est exempté de consentement sur le marché français pa
 
 ### Intégration du script
 
-Nous vous conseillons d'héberger directement le script du traceur WebAnalytics By TimeOne sur votre site.
+Nous vous conseillons d'utiliser un CDN open-source pour charger le script du traceur WebAnalytics By TimeOne sur votre site.
+Cette intégration vous garantit d'avoir la dernière version à jour.
 
-À défaut, vous pouvez utiliser un CDN open-source :
+Une liste de CDN non exhaustive :
 - [jsDelivr](https://www.jsdelivr.com/) - https://cdn.jsdelivr.net/gh/TimeOne-Group/webanalytics/dist/index.min.js
 - [Statically](https://statically.io/) - https://cdn.statically.io/gh/TimeOne-Group/webanalytics/master/dist/index.min.js
 
@@ -32,7 +33,7 @@ Si vous ne pouvez pas utiliser une de ces solutions, merci de contacter votre ch
 
 Exemple d'intégration :
 ```html
-<script defer="defer" src="https://cdn.jsdelivr.net/gh/TimeOne-Group/webanalytics/dist/index.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/gh/TimeOne-Group/webanalytics/dist/index.min.js"></script>
 ```
 
 ### Configuration du traceur
